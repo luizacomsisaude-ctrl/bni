@@ -1,0 +1,1017 @@
+<title>Painel da Gestão BNI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --surface-2: #eef1f5;
+  --ink: #131821;
+  --ink-2: #4d5664;
+  --ink-3: #7c8594;
+  --line: #dde2e9;
+  --accent: #1c5cab;
+  --accent-soft: #e3edfa;
+  --real: #2a78d6;
+  --plan: #c3cad4;
+  --good: #1b7a45;
+  --good-bg: #e2f3e8;
+  --warn: #9a5b00;
+  --warn-bg: #fbeed3;
+  --crit: #c1272d;
+  --crit-bg: #fbe3e2;
+  --none: #6f7784;
+  --none-bg: #eceff3;
+  --display: "Barlow Semi Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111419;
+    --surface: #1a1e25;
+    --surface-2: #232832;
+    --ink: #f2f4f7;
+    --ink-2: #b9c0cb;
+    --ink-3: #8a93a1;
+    --line: #2e3440;
+    --accent: #6da7ec;
+    --accent-soft: #1d2b40;
+    --real: #3987e5;
+    --plan: #4a5260;
+    --good: #5cc98a;
+    --good-bg: #16301f;
+    --warn: #f0b44c;
+    --warn-bg: #36280f;
+    --crit: #f07a76;
+    --crit-bg: #3a1c1c;
+    --none: #9aa2ae;
+    --none-bg: #262b34;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111419;
+  --surface: #1a1e25;
+  --surface-2: #232832;
+  --ink: #f2f4f7;
+  --ink-2: #b9c0cb;
+  --ink-3: #8a93a1;
+  --line: #2e3440;
+  --accent: #6da7ec;
+  --accent-soft: #1d2b40;
+  --real: #3987e5;
+  --plan: #4a5260;
+  --good: #5cc98a;
+  --good-bg: #16301f;
+  --warn: #f0b44c;
+  --warn-bg: #36280f;
+  --crit: #f07a76;
+  --crit-bg: #3a1c1c;
+  --none: #9aa2ae;
+  --none-bg: #262b34;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 var(--body);
+  padding-inline: 16px;
+  padding-block: 0 56px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; letter-spacing: .01em; }
+h2 { font-size: 24px; font-weight: 700; }
+h3 { font-size: 17px; font-weight: 600; }
+.num { font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.muted { color: var(--ink-2); }
+section { display: grid; gap: 14px; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+.sec-head p { margin: 0; color: var(--ink-2); max-width: 62ch; }
+
+/* Header */
+header.top {
+  display: grid; gap: 18px; padding-block: 28px 4px;
+}
+.title-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
+.title-row h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 700; line-height: 1.05; }
+.title-row h1 span { color: var(--accent); }
+.save-state { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; }
+.save-state i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
+.save-state[data-s="ok"] i { background: var(--good); }
+.save-state[data-s="busy"] i { background: var(--warn); }
+.save-state[data-s="err"] i { background: var(--crit); }
+
+.timeline { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.timeline div { background: var(--surface); border: 1px solid var(--line); padding: 8px 10px; display: grid; gap: 2px; }
+.timeline div:first-child { border-radius: 8px 0 0 8px; }
+.timeline div:last-child { border-radius: 0 8px 8px 0; }
+.timeline b { font-family: var(--display); font-size: 16px; font-weight: 600; }
+.timeline small { color: var(--ink-3); font-size: 12px; }
+.timeline div[data-now] { border-color: var(--accent); background: var(--accent-soft); }
+.timeline div[data-done] b::after { content: " ✓"; color: var(--good); font-size: 13px; }
+
+.baseline { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 13px; color: var(--ink-2); }
+.baseline b { color: var(--ink); font-weight: 600; }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+.headline { display: grid; gap: 12px; align-content: start; }
+.big { font-family: var(--display); font-weight: 700; font-size: clamp(34px, 5vw, 48px); line-height: 1; }
+.big small { font-size: .45em; color: var(--ink-2); font-weight: 600; }
+.bar { position: relative; height: 10px; background: var(--surface-2); border-radius: 5px; overflow: visible; }
+.bar > span { position: absolute; inset: 0 auto 0 0; background: var(--real); border-radius: 5px; max-width: 100%; }
+.bar > em { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); border-radius: 1px; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 14px; margin: 0; }
+.kv dt { color: var(--ink-2); }
+.kv dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.chart-panel { display: grid; gap: 10px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.legend i.real { background: var(--real); }
+.legend i.plan { background: var(--plan); }
+.legend i.line { height: 2px; border-radius: 1px; background: var(--ink-3); }
+svg text { fill: var(--ink-3); font: 12px var(--body); font-variant-numeric: tabular-nums; }
+svg .grid { stroke: var(--line); stroke-width: 1; }
+svg .b-plan { fill: var(--plan); }
+svg .b-real { fill: var(--real); }
+svg .l-plan { stroke: var(--ink-3); stroke-width: 2; fill: none; stroke-dasharray: 5 4; }
+svg .l-real { stroke: var(--real); stroke-width: 2; fill: none; }
+svg .d-real { fill: var(--real); stroke: var(--surface); stroke-width: 2; }
+svg .hit { fill: transparent; }
+svg .hit:hover { fill: var(--ink); fill-opacity: .05; }
+svg text.lbl { fill: var(--ink-2); font-weight: 600; }
+
+/* KPI cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 10px; align-content: start; }
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.card-top h3 { font-size: 16px; }
+.card-top .n { color: var(--ink-3); font-size: 12px; font-weight: 600; font-family: var(--body); display: block; letter-spacing: .06em; text-transform: uppercase; }
+.card .val { font-family: var(--display); font-size: 32px; font-weight: 700; line-height: 1; }
+.card .val small { font-size: 15px; color: var(--ink-2); font-weight: 600; }
+.card .sub { font-size: 13px; color: var(--ink-2); margin: 0; }
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.pill[data-s="good"] { color: var(--good); background: var(--good-bg); }
+.pill[data-s="warn"] { color: var(--warn); background: var(--warn-bg); }
+.pill[data-s="crit"] { color: var(--crit); background: var(--crit-bg); }
+.pill[data-s="none"] { color: var(--none); background: var(--none-bg); }
+.spark { width: 100%; height: 46px; display: block; }
+
+/* Entry */
+.entry { display: grid; gap: 16px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tabs button {
+  font: 600 14px var(--body); color: var(--ink-2); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 8px; padding: 7px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+}
+.tabs button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tabs button i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.tabs button[data-filled] i { background: var(--good); }
+.tabs button[aria-selected="true"] i { background: #fff; opacity: .8; }
+:root[data-theme="dark"] .tabs button[aria-selected="true"] { color: #0d1522; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tabs button[aria-selected="true"] { color: #0d1522; } }
+button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.field { display: grid; gap: 4px; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+.field label { font-weight: 600; font-size: 14px; }
+.field .hint { font-size: 12.5px; color: var(--ink-2); }
+.field .hint b { color: var(--ink); font-weight: 600; }
+input[type="number"], input[type="text"], input[type="month"], textarea {
+  font: 500 16px var(--body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 7px; padding: 7px 10px; width: 100%; font-variant-numeric: tabular-nums;
+}
+input:disabled, textarea:disabled { opacity: .65; }
+textarea { min-height: 72px; resize: vertical; font-weight: 400; }
+.checks { display: grid; gap: 6px; font-size: 14px; }
+.checks label { display: flex; gap: 8px; align-items: flex-start; }
+.checks input { margin-top: 3px; accent-color: var(--accent); }
+.entry-foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+
+/* Tables */
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); }
+thead th { font-weight: 600; color: var(--ink-2); font-size: 12.5px; }
+tbody tr:last-child td { border-bottom: 0; }
+td.r { font-weight: 600; }
+td .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-left: 5px; vertical-align: 1px; }
+.dot[data-s="good"] { background: var(--good); } .dot[data-s="warn"] { background: var(--warn); } .dot[data-s="crit"] { background: var(--crit); }
+.sub-row td { color: var(--ink-3); font-size: 12.5px; }
+.mec td { vertical-align: top; }
+.mec td:first-child { white-space: normal; min-width: 150px; font-weight: 600; }
+.mec input { min-width: 220px; }
+
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+details > summary { cursor: pointer; padding: 14px 18px; font-family: var(--display); font-weight: 600; font-size: 18px; list-style-position: inside; }
+details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
+.prem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.prem-tbl input { width: 70px; padding: 5px 7px; text-align: right; }
+
+#tip {
+  position: fixed; z-index: 10; pointer-events: none; background: var(--ink); color: var(--bg);
+  font-size: 13px; padding: 7px 10px; border-radius: 7px; line-height: 1.4; max-width: 240px;
+  font-variant-numeric: tabular-nums; box-shadow: 0 4px 14px rgb(0 0 0 / .18);
+}
+.note { font-size: 13px; color: var(--ink-2); margin: 0; }
+
+@media (max-width: 820px) {
+  .hero, .entry-foot { grid-template-columns: 1fr; }
+  .timeline { grid-template-columns: repeat(3, 1fr); }
+  .timeline div { border-radius: 8px !important; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bar > span { transition: width .4s ease; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="title-row">
+      <div>
+        <div class="eyebrow">Equipe de liderança · metas da gestão</div>
+        <h1>Gestão BNI <span id="periodo">Out/2026 – Mar/2027</span></h1>
+      </div>
+      <div class="save-state" id="saveState" data-s="idle"><i></i><span>Conectando…</span></div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+    <div class="baseline" id="baseline"></div>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <h2>Obrigado por Negócio Fechado</h2>
+      <p>Meta de OPNF calculada como reuniões × membros × valor da cadeira por reunião do período anterior.</p>
+    </div>
+    <div class="hero">
+      <div class="panel headline" id="opnfHead"></div>
+      <div class="panel chart-panel">
+        <div class="legend"><span><i class="plan"></i>Planejado</span><span><i class="real"></i>Realizado</span></div>
+        <div id="opnfChart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Indicadores do semestre</h2>
+      <p>Realizado acumulado comparado ao planejado dos meses já lançados. No alvo a partir de 100%, atenção entre 70% e 99%, crítico abaixo de 70%.</p>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Total de membros</h2>
+      <p>Planejado = membros do mês anterior + novos membros − saídas previstas − renovações que não devem acontecer.</p>
+    </div>
+    <div class="panel chart-panel">
+      <div class="legend"><span><i class="line"></i>Planejado</span><span><i class="real"></i>Realizado</span></div>
+      <div id="membrosChart"></div>
+    </div>
+  </section>
+
+  <section class="entry" id="lancar">
+    <div class="sec-head">
+      <h2>Lançar resultados</h2>
+      <p>Escolha o mês e digite o realizado. Tudo é salvo automaticamente e o painel se atualiza na hora.</p>
+    </div>
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="panel entry" id="form"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Planejado × realizado</h2>
+      <p>Visão completa mês a mês, no mesmo formato da planilha.</p>
+    </div>
+    <div class="tbl-wrap"><table id="matrix"></table></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Mecanismos</h2>
+      <p>As ações que a equipe vai usar para bater cada meta.</p>
+    </div>
+    <div class="tbl-wrap"><table class="mec" id="mecTable"></table></div>
+  </section>
+
+  <details id="premDetails">
+    <summary>Premissas das metas</summary>
+    <div class="inner">
+      <p class="note">Alterar estes valores recalcula todas as metas planejadas do painel.</p>
+      <div class="prem-grid" id="premScalars"></div>
+      <div class="tbl-wrap"><table class="prem-tbl" id="premTable"></table></div>
+    </div>
+  </details>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Defaults (planilha METAS GESTÃO 04/2026 a 09/2026) ----------
+  const DEFAULT_PREM = {
+    inicio: "2026-10",
+    membrosInicio: 19,
+    reunioes: [5, 3, 3, 4, 3, 3],
+    novos: [3, 4, 2, 2, 3, 2],
+    saidasPrev: [1, 1, 1, 0, 1, 0],
+    renovPrev: [2, 2, 0, 0, 2, 0],
+    retencaoAtual: 0.23,
+    retencaoIdeal: 0.45,
+    assiduidadeMeta: 0.95,
+    fatorRef: 1.12,
+    opnfBase: 1268222,
+    palmsBase: 422
+  };
+  const FIELDS = [
+    { k: "novos", label: "Novos membros", unit: "" },
+    { k: "membros", label: "Total de membros", unit: "" },
+    { k: "faltas", label: "Faltas no mês", unit: "" },
+    { k: "convidados", label: "Convidados", unit: "" },
+    { k: "oao", label: "Um-a-Um", unit: "" },
+    { k: "ueg", label: "UEG", unit: "" },
+    { k: "refs", label: "Referências qualificadas", unit: "" },
+    { k: "opnf", label: "OPNF (R$)", unit: "R$" },
+    { k: "renov", label: "Renovações realizadas", unit: "" },
+    { k: "saidas", label: "Saídas", unit: "" }
+  ];
+  const REPORTS = [
+    "PALMS Resumido (BNIC)",
+    "Traffic Lights – Semáforo de Equipes (BNIC)",
+    "Afiliações atrasadas (BNIC)",
+    "Calendário de reuniões – Plano de Liderança"
+  ];
+  const MEC_ROWS = [
+    ["novos", "1. Novos membros"], ["membros", "2. Total de membros"], ["assid", "3. Assiduidade"],
+    ["convidados", "4. Convidados"], ["oao", "5. Um-a-Um"], ["ueg", "6. UEG"],
+    ["refs", "7. Referências qualificadas"], ["opnf", "8. Obrigado por Negócio Fechado"],
+    ["renov", "Renovação e retenção"]
+  ];
+  const MES_NOMES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+  const MES_LONGO = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+
+  // ---------- State ----------
+  const state = {
+    prem: clone(DEFAULT_PREM),
+    mec: {},
+    meses: [{}, {}, {}, {}, {}, {}]
+  };
+  let tab = 0;
+  let db = null, mode = "connecting", readOnly = false;
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const nf0 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
+  const nf1 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+  const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  const pct = (x) => (x == null || !isFinite(x)) ? "—" : nf0.format(x * 100) + "%";
+  const has = (v) => typeof v === "number" && isFinite(v);
+  function brlShort(v) {
+    if (Math.abs(v) >= 1e6) return "R$ " + nf1.format(v / 1e6) + " mi";
+    if (Math.abs(v) >= 1e3) return "R$ " + nf0.format(v / 1e3) + " mil";
+    return "R$ " + nf0.format(v);
+  }
+
+  // ---------- Months ----------
+  function monthInfo(i) {
+    const [y, m] = state.prem.inicio.split("-").map(Number);
+    const d = new Date(y, m - 1 + i, 1);
+    return { short: MES_NOMES[d.getMonth()] + "/" + String(d.getFullYear()).slice(2), long: MES_LONGO[d.getMonth()] + " de " + d.getFullYear(), date: d };
+  }
+  function currentIndex() {
+    const [y, m] = state.prem.inicio.split("-").map(Number);
+    const now = new Date();
+    return (now.getFullYear() - y) * 12 + (now.getMonth() - (m - 1));
+  }
+
+  // ---------- Plan (mesma lógica da planilha) ----------
+  function computePlan() {
+    const p = state.prem;
+    const vc = p.palmsBase ? p.opnfBase / p.palmsBase : 0;
+    const out = [];
+    let prev = p.membrosInicio;
+    for (let i = 0; i < 6; i++) {
+      const reun = p.reunioes[i] || 0;
+      const prov = Math.round(p.renovPrev[i] * p.retencaoIdeal);
+      const naoRenov = p.renovPrev[i] - prov;
+      const saidasTot = p.saidasPrev[i] + naoRenov;
+      const membros = prev + p.novos[i] - saidasTot;
+      prev = membros;
+      out.push({
+        reun, membros, novos: p.novos[i], renovPrev: p.renovPrev[i], renov: prov, naoRenov, saidas: saidasTot,
+        faltas: Math.floor((1 - p.assiduidadeMeta) * membros * reun + 1e-9),
+        assid: p.assiduidadeMeta,
+        convidados: membros,
+        convSemana: reun ? membros / reun : 0,
+        oao: membros * reun,
+        ueg: membros * reun,
+        refs: Math.round(membros * reun * p.fatorRef),
+        opnf: reun * membros * vc
+      });
+    }
+    return { months: out, vc };
+  }
+
+  function assidReal(i, plan) {
+    const r = state.meses[i];
+    if (!has(r.faltas)) return null;
+    const membros = has(r.membros) ? r.membros : plan.months[i].membros;
+    const possiveis = membros * plan.months[i].reun;
+    return possiveis ? Math.max(0, 1 - r.faltas / possiveis) : null;
+  }
+
+  function statusOf(ratio, lowerBetter) {
+    if (ratio == null || !isFinite(ratio)) return "none";
+    if (lowerBetter) return ratio <= 1 ? "good" : ratio <= 1.3 ? "warn" : "crit";
+    return ratio >= 1 ? "good" : ratio >= 0.7 ? "warn" : "crit";
+  }
+  const STATUS_TXT = { good: "● No alvo", warn: "▲ Atenção", crit: "■ Crítico", none: "Sem dados" };
+
+  // ---------- Indicator summaries ----------
+  function summarize(plan) {
+    const P = plan.months, M = state.meses;
+    const sumK = (k) => {
+      let real = 0, planned = 0, n = 0, total = 0;
+      for (let i = 0; i < 6; i++) {
+        total += P[i][k];
+        if (has(M[i][k])) { real += M[i][k]; planned += P[i][k]; n++; }
+      }
+      return { real, planned, n, total };
+    };
+    const ind = [];
+    const opnf = sumK("opnf");
+    ind.push({ k: "opnf", n: "8", label: "OPNF", real: opnf.real, planned: opnf.planned, total: opnf.total, count: opnf.n, money: true,
+      sub: "Meta do semestre " + brl.format(opnf.total) });
+
+    // membros: último mês lançado
+    let lastM = -1;
+    for (let i = 0; i < 6; i++) if (has(M[i].membros)) lastM = i;
+    ind.push({ k: "membros", n: "2", label: "Total de membros", kind: "last",
+      real: lastM >= 0 ? M[lastM].membros : 0, planned: lastM >= 0 ? P[lastM].membros : 0, count: lastM >= 0 ? 1 : 0,
+      total: P[5].membros, sub: "Início com " + state.prem.membrosInicio + " · meta final " + P[5].membros + (lastM >= 0 ? " · dado de " + monthInfo(lastM).short : "") });
+
+    const nov = sumK("novos");
+    ind.push({ k: "novos", n: "1", label: "Novos membros", real: nov.real, planned: nov.planned, total: nov.total, count: nov.n,
+      sub: "Meta do semestre " + nov.total });
+
+    // assiduidade: média dos meses com faltas
+    let aSum = 0, aN = 0;
+    for (let i = 0; i < 6; i++) { const a = assidReal(i, plan); if (a != null) { aSum += a; aN++; } }
+    ind.push({ k: "assid", n: "3", label: "Assiduidade", kind: "pct", real: aN ? aSum / aN : 0, planned: aN ? state.prem.assiduidadeMeta : 0,
+      total: state.prem.assiduidadeMeta, count: aN, sub: "Meta " + pct(state.prem.assiduidadeMeta) + " de presença" });
+
+    const cv = sumK("convidados");
+    ind.push({ k: "convidados", n: "4", label: "Convidados", real: cv.real, planned: cv.planned, total: cv.total, count: cv.n,
+      sub: "Meta do semestre " + nf0.format(cv.total) + " · 1 por membro/mês" });
+    const oao = sumK("oao");
+    ind.push({ k: "oao", n: "5", label: "Um-a-Um", real: oao.real, planned: oao.planned, total: oao.total, count: oao.n,
+      sub: "Meta do semestre " + nf0.format(oao.total) + " · 1 por membro/reunião" });
+    const ueg = sumK("ueg");
+    ind.push({ k: "ueg", n: "6", label: "UEG", real: ueg.real, planned: ueg.planned, total: ueg.total, count: ueg.n,
+      sub: "Meta do semestre " + nf0.format(ueg.total) + " · 1 por membro/reunião" });
+    const refs = sumK("refs");
+    ind.push({ k: "refs", n: "7", label: "Referências qualificadas", real: refs.real, planned: refs.planned, total: refs.total, count: refs.n,
+      sub: "Meta do semestre " + nf0.format(refs.total) + " · " + nf1.format(state.prem.fatorRef) + " por membro/reunião" });
+
+    const ren = sumK("renov");
+    let rp = 0; for (let i = 0; i < 6; i++) if (has(M[i].renov)) rp += P[i].renovPrev;
+    ind.push({ k: "renov", n: "R", label: "Renovações", real: ren.real, planned: ren.planned, total: ren.total, count: ren.n,
+      sub: "Taxa real " + (rp ? pct(ren.real / rp) : "—") + " · ideal " + pct(state.prem.retencaoIdeal) + " · atual " + pct(state.prem.retencaoAtual) });
+
+    const sd = sumK("saidas");
+    ind.push({ k: "saidas", n: "S", label: "Saídas", real: sd.real, planned: sd.planned, total: sd.total, count: sd.n, lowerBetter: true,
+      sub: "Limite do semestre " + sd.total + " (previstas + não renovações)" });
+
+    ind.forEach((x) => {
+      if (!x.count) { x.ratio = null; x.status = "none"; return; }
+      if (x.lowerBetter) x.ratio = x.planned ? x.real / x.planned : (x.real ? Infinity : 0);
+      else x.ratio = x.planned ? x.real / x.planned : (x.real > 0 ? 1 : null);
+      x.status = x.lowerBetter
+        ? (x.real <= x.planned ? "good" : x.real <= x.planned + 1 ? "warn" : "crit")
+        : statusOf(x.ratio);
+    });
+    return ind;
+  }
+
+  function monthSeries(k, plan) {
+    return plan.months.map((pm, i) => {
+      if (k === "assid") return { plan: pm.assid, real: assidReal(i, plan) };
+      const r = state.meses[i][k];
+      return { plan: pm[k], real: has(r) ? r : null };
+    });
+  }
+  function fmtK(k, v) {
+    if (v == null) return "—";
+    if (k === "opnf") return brl.format(v);
+    if (k === "assid") return pct(v);
+    return nf0.format(v);
+  }
+
+  // ---------- Render: header ----------
+  function renderHeader(plan) {
+    $("periodo").textContent = monthInfo(0).short.replace("/", "/20") + " – " + monthInfo(5).short.replace("/", "/20");
+    const cur = currentIndex();
+    $("timeline").innerHTML = plan.months.map((pm, i) => {
+      const filled = Object.keys(state.meses[i]).some((k) => FIELDS.some((f) => f.k === k) && has(state.meses[i][k]));
+      return '<div' + (i === cur ? " data-now" : "") + (filled ? " data-done" : "") + '><b>' + esc(monthInfo(i).short) +
+        '</b><small>' + pm.reun + " reuniões · " + pm.membros + " membros</small></div>";
+    }).join("");
+    const p = state.prem;
+    const status = cur < 0 ? "A gestão começa em " + monthInfo(0).long + "." : cur > 5 ? "Gestão encerrada." : "Mês atual: " + monthInfo(cur).long + ".";
+    $("baseline").innerHTML =
+      "<span>" + esc(status) + "</span>" +
+      "<span>Base (período anterior): OPNF <b>" + brl.format(p.opnfBase) + "</b></span>" +
+      "<span>PALMS <b>" + nf0.format(p.palmsBase) + "</b> presenças</span>" +
+      "<span>Valor da cadeira por reunião <b>" + brl.format(plan.vc) + "</b></span>";
+  }
+
+  // ---------- Render: OPNF hero ----------
+  function renderOpnf(plan, ind) {
+    const x = ind.find((i) => i.k === "opnf");
+    const total = x.total;
+    const w = total ? Math.min(100, (x.real / total) * 100) : 0;
+    const pace = total ? Math.min(100, (x.planned / total) * 100) : 0;
+    $("opnfHead").innerHTML =
+      '<div class="eyebrow">Realizado no semestre</div>' +
+      '<div class="big num">' + brlShort(x.real) + '</div><div class="muted num">de ' + brl.format(total) + ' planejados para o semestre</div>' +
+      '<div class="bar" aria-hidden="true"><span style="width:' + w + '%"></span>' + (x.count ? '<em style="left:calc(' + pace + '% - 1px)" title="Planejado até o último mês lançado"></em>' : "") + '</div>' +
+      '<div><span class="pill" data-s="' + x.status + '">' + STATUS_TXT[x.status] + (x.count ? " · " + pct(x.ratio) + " do planejado" : "") + '</span></div>' +
+      '<dl class="kv">' +
+      "<dt>Planejado até agora</dt><dd>" + (x.count ? brl.format(x.planned) : "—") + "</dd>" +
+      "<dt>Falta para a meta</dt><dd>" + brl.format(Math.max(0, total - x.real)) + "</dd>" +
+      "<dt>Valor da cadeira por reunião</dt><dd>" + brl.format(plan.vc) + "</dd>" +
+      "</dl>";
+    $("opnfChart").innerHTML = barChart(monthSeries("opnf", plan), "opnf", 240);
+  }
+
+  // Grouped bar chart (planejado vs realizado)
+  function barChart(series, k, H) {
+    const W = 640, padL = 58, padR = 8, padT = 22, padB = 26;
+    const max = niceMax(Math.max(1, ...series.map((s) => Math.max(s.plan || 0, s.real || 0))));
+    const iw = W - padL - padR, ih = H - padT - padB;
+    const gw = iw / series.length, bw = Math.min(26, gw * 0.3), gap = 2;
+    const y = (v) => padT + ih - (v / max) * ih;
+    let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="Planejado e realizado por mês">';
+    const ticks = 4;
+    for (let t = 0; t <= ticks; t++) {
+      const v = (max / ticks) * t, yy = y(v);
+      s += '<line class="grid" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + yy + '" y2="' + yy + '"/>';
+      s += '<text x="' + (padL - 8) + '" y="' + (yy + 4) + '" text-anchor="end">' + (k === "opnf" ? brlShort(v).replace("R$ ", "") : nf0.format(v)) + "</text>";
+    }
+    series.forEach((d, i) => {
+      const cx = padL + gw * i + gw / 2;
+      const x1 = cx - bw - gap / 2, x2 = cx + gap / 2;
+      s += roundBar(x1, y(d.plan || 0), bw, padT + ih - y(d.plan || 0), "b-plan");
+      if (d.real != null) {
+        s += roundBar(x2, y(d.real), bw, padT + ih - y(d.real), "b-real");
+      }
+      s += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(monthInfo(i).short) + "</text>";
+      if (d.real != null) s += '<text class="lbl" x="' + (x2 + bw / 2) + '" y="' + (y(d.real) - 6) + '" text-anchor="middle">' + (d.plan ? pct(d.real / d.plan) : "") + "</text>";
+      const tip = "<b>" + esc(monthInfo(i).short) + "</b><br>Planejado: " + fmtK(k, d.plan) + "<br>Realizado: " + fmtK(k, d.real) +
+        (d.real != null && d.plan ? "<br>" + pct(d.real / d.plan) + " do planejado" : "");
+      s += '<rect class="hit" x="' + (padL + gw * i + 2) + '" y="' + padT + '" width="' + (gw - 4) + '" height="' + ih + '" rx="6" data-tip="' + esc(tip) + '"/>';
+    });
+    return s + "</svg>";
+  }
+  function roundBar(x, y, w, h, cls) {
+    if (h <= 0) return "";
+    const r = Math.min(4, h, w / 2);
+    return '<path class="' + cls + '" d="M' + x + "," + (y + h) + "V" + (y + r) + "Q" + x + "," + y + " " + (x + r) + "," + y +
+      "H" + (x + w - r) + "Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r) + "V" + (y + h) + 'Z"/>';
+  }
+  function niceMax(v) {
+    const e = Math.pow(10, Math.floor(Math.log10(v)));
+    const f = v / e;
+    const n = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10;
+    return n * e;
+  }
+
+  // ---------- Render: cards ----------
+  function renderCards(plan, ind) {
+    $("cards").innerHTML = ind.filter((x) => x.k !== "opnf").map((x) => {
+      let val;
+      if (x.kind === "pct") val = x.count ? pct(x.real) : "—";
+      else if (x.kind === "last") val = x.count ? nf0.format(x.real) + ' <small>de ' + nf0.format(x.planned) + " planejados</small>" : "—";
+      else val = x.count ? nf0.format(x.real) + ' <small>de ' + nf0.format(x.planned) + " planejados</small>" : "—";
+      const detail = x.count
+        ? (x.kind === "pct" ? "Média de " + x.count + (x.count > 1 ? " meses" : " mês") + " lançado" + (x.count > 1 ? "s" : "")
+          : x.kind === "last" ? "" : x.count + (x.count > 1 ? " meses lançados" : " mês lançado"))
+        : "Nenhum mês lançado ainda";
+      const pillTxt = STATUS_TXT[x.status] + (x.count && x.ratio != null && isFinite(x.ratio) && !x.lowerBetter ? " · " + pct(x.ratio) : "");
+      return '<article class="card">' +
+        '<div class="card-top"><h3><span class="n">' + (x.n.match(/\d/) ? "Meta " + x.n : "Retenção") + "</span>" + esc(x.label) + "</h3>" +
+        '<span class="pill" data-s="' + x.status + '">' + pillTxt + "</span></div>" +
+        '<div class="val num">' + val + "</div>" +
+        spark(monthSeries(x.k, plan), x.k) +
+        '<p class="sub">' + esc(x.sub) + (detail ? " · " + esc(detail) : "") + "</p>" +
+        "</article>";
+    }).join("");
+  }
+  function spark(series, k) {
+    const W = 240, H = 46, pad = 2;
+    const max = Math.max(1e-9, ...series.map((s) => Math.max(s.plan || 0, s.real || 0)));
+    const gw = W / 6, bw = Math.min(12, gw * 0.3);
+    let s = '<svg class="spark" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" aria-hidden="true">';
+    series.forEach((d, i) => {
+      const cx = gw * i + gw / 2;
+      const hp = ((d.plan || 0) / max) * (H - pad * 2), hr = ((d.real || 0) / max) * (H - pad * 2);
+      s += roundBar(cx - bw - 1, H - hp, bw, hp, "b-plan");
+      if (d.real != null) s += roundBar(cx + 1, H - hr, bw, Math.max(hr, 1.5), "b-real");
+      const tip = "<b>" + esc(monthInfo(i).short) + "</b><br>Planejado: " + fmtK(k, d.plan) + "<br>Realizado: " + fmtK(k, d.real);
+      s += '<rect class="hit" x="' + (gw * i) + '" y="0" width="' + gw + '" height="' + H + '" data-tip="' + esc(tip) + '"/>';
+    });
+    return s + "</svg>";
+  }
+
+  // ---------- Render: membros chart ----------
+  function renderMembros(plan) {
+    const W = 1000, H = 240, padL = 40, padR = 16, padT = 20, padB = 26;
+    const series = plan.months.map((pm, i) => ({ plan: pm.membros, real: has(state.meses[i].membros) ? state.meses[i].membros : null }));
+    const vals = [state.prem.membrosInicio, ...series.map((s) => s.plan), ...series.filter((s) => s.real != null).map((s) => s.real)];
+    const lo = Math.max(0, Math.floor((Math.min(...vals) - 2) / 5) * 5), hi = Math.ceil((Math.max(...vals) + 1) / 5) * 5;
+    const iw = W - padL - padR, ih = H - padT - padB;
+    const x = (i) => padL + (iw / 6) * i; // i = 0 start, 1..6 months
+    const y = (v) => padT + ih - ((v - lo) / (hi - lo)) * ih;
+    let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="Total de membros planejado e realizado">';
+    for (let v = lo; v <= hi; v += 5) {
+      s += '<line class="grid" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>';
+      s += '<text x="' + (padL - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + "</text>";
+    }
+    const planPts = [[x(0), y(state.prem.membrosInicio)]].concat(series.map((d, i) => [x(i + 1), y(d.plan)]));
+    s += '<path class="l-plan" d="M' + planPts.map((p) => p.join(",")).join("L") + '"/>';
+    // realizado: começa no início da gestão e segue os meses lançados
+    const realPts = [[x(0), y(state.prem.membrosInicio)]];
+    series.forEach((d, i) => { if (d.real != null) realPts.push([x(i + 1), y(d.real)]); });
+    if (realPts.length > 1) s += '<path class="l-real" d="M' + realPts.map((p) => p.join(",")).join("L") + '"/>';
+    realPts.forEach((p, j) => { if (j > 0) s += '<circle class="d-real" cx="' + p[0] + '" cy="' + p[1] + '" r="5"/>'; });
+    s += '<text x="' + x(0) + '" y="' + (H - 8) + '" text-anchor="start">Início</text>';
+    series.forEach((d, i) => {
+      s += '<text x="' + x(i + 1) + '" y="' + (H - 8) + '" text-anchor="' + (i === 5 ? "end" : "middle") + '">' + esc(monthInfo(i).short) + "</text>";
+      const tip = "<b>" + esc(monthInfo(i).short) + "</b><br>Planejado: " + d.plan + "<br>Realizado: " + (d.real == null ? "—" : d.real);
+      s += '<rect class="hit" x="' + (x(i + 1) - iw / 12) + '" y="' + padT + '" width="' + (iw / 6) + '" height="' + ih + '" data-tip="' + esc(tip) + '"/>';
+    });
+    const last = planPts[planPts.length - 1];
+    s += '<text class="lbl" x="' + (last[0] - 4) + '" y="' + (last[1] - 10) + '" text-anchor="end">Meta ' + series[5].plan + "</text>";
+    $("membrosChart").innerHTML = s + "</svg>";
+  }
+
+  // ---------- Render: matrix ----------
+  function renderMatrix(plan) {
+    const rows = [
+      ["Reuniões", (i) => plan.months[i].reun, null],
+      ["Novos membros", (i) => plan.months[i].novos, "novos"],
+      ["Total de membros", (i) => plan.months[i].membros, "membros"],
+      ["Faltas no mês (máx.)", (i) => plan.months[i].faltas, "faltas", true],
+      ["Assiduidade", (i) => plan.months[i].assid, "assid"],
+      ["Convidados", (i) => plan.months[i].convidados, "convidados"],
+      ["Um-a-Um", (i) => plan.months[i].oao, "oao"],
+      ["UEG", (i) => plan.months[i].ueg, "ueg"],
+      ["Referências qualificadas", (i) => plan.months[i].refs, "refs"],
+      ["OPNF", (i) => plan.months[i].opnf, "opnf"],
+      ["Renovações (prováveis)", (i) => plan.months[i].renov, "renov"],
+      ["Saídas (total)", (i) => plan.months[i].saidas, "saidas", true]
+    ];
+    let h = "<thead><tr><th>Indicador</th>";
+    for (let i = 0; i < 6; i++) h += '<th colspan="2">' + esc(monthInfo(i).short) + "</th>";
+    h += "</tr><tr><th></th>" + "<th>Plan.</th><th>Real</th>".repeat(6) + "</tr></thead><tbody>";
+    rows.forEach(([label, pf, k, lower]) => {
+      h += "<tr><td>" + esc(label) + "</td>";
+      for (let i = 0; i < 6; i++) {
+        const pv = pf(i);
+        let rv = null;
+        if (k === "assid") rv = assidReal(i, plan);
+        else if (k) rv = has(state.meses[i][k]) ? state.meses[i][k] : null;
+        const kk = k || "n";
+        const st = rv == null || !k ? null : lower ? (rv <= pv ? "good" : rv <= pv + 1 ? "warn" : "crit") : statusOf(pv ? rv / pv : (rv > 0 ? 1 : null));
+        h += "<td>" + fmtK(kk, pv) + '</td><td class="r">' + (k ? fmtK(kk, rv) : "") + (st && st !== "none" ? '<span class="dot" data-s="' + st + '"></span>' : "") + "</td>";
+      }
+      h += "</tr>";
+    });
+    $("matrix").innerHTML = h + "</tbody>";
+  }
+
+  // ---------- Entry form ----------
+  function renderTabs() {
+    $("tabs").innerHTML = [0, 1, 2, 3, 4, 5].map((i) => {
+      const filled = FIELDS.some((f) => has(state.meses[i][f.k]));
+      return '<button role="tab" id="tab' + i + '" aria-selected="' + (i === tab) + '"' + (filled ? " data-filled" : "") + ' data-i="' + i + '"><i></i>' + esc(monthInfo(i).short) + "</button>";
+    }).join("");
+  }
+  function buildForm(plan) {
+    const pm = plan.months[tab], r = state.meses[tab];
+    const hint = {
+      novos: "Planejado: <b>" + pm.novos + "</b>",
+      membros: "Planejado: <b>" + pm.membros + "</b>",
+      faltas: "Máximo para " + pct(state.prem.assiduidadeMeta) + ": <b>" + pm.faltas + "</b> (" + pm.reun + " reuniões)",
+      convidados: "Planejado: <b>" + pm.convidados + "</b> · " + nf1.format(pm.convSemana) + " por reunião",
+      oao: "Planejado: <b>" + pm.oao + "</b>",
+      ueg: "Planejado: <b>" + pm.ueg + "</b>",
+      refs: "Planejado: <b>" + pm.refs + "</b>",
+      opnf: "Planejado: <b>" + brl.format(pm.opnf) + "</b>",
+      renov: "Previstas: <b>" + pm.renovPrev + "</b> · prováveis: <b>" + pm.renov + "</b>",
+      saidas: "Previstas: <b>" + pm.saidas + "</b> (" + state.prem.saidasPrev[tab] + " + " + pm.naoRenov + " não renovações)"
+    };
+    const dis = readOnly ? " disabled" : "";
+    let h = '<div class="sec-head"><h3>Resultados de ' + esc(monthInfo(tab).long) + '</h3><span class="muted" id="assidLive"></span></div><div class="fields">';
+    FIELDS.forEach((f) => {
+      const v = has(r[f.k]) ? r[f.k] : "";
+      h += '<div class="field"><label for="f_' + f.k + '">' + esc(f.label) + "</label>" +
+        '<input type="number" inputmode="decimal" min="0" step="' + (f.k === "opnf" ? "0.01" : "1") + '" id="f_' + f.k + '" data-k="' + f.k + '" value="' + v + '" placeholder="—"' + dis + ">" +
+        '<span class="hint">' + hint[f.k] + "</span></div>";
+    });
+    h += '</div><div class="entry-foot"><div class="field"><label>Relatórios conferidos</label><div class="checks">';
+    REPORTS.forEach((rep, j) => {
+      h += '<label><input type="checkbox" id="rep' + j + '" data-rep="' + j + '"' + (r.relatorios && r.relatorios[j] ? " checked" : "") + dis + ">" + esc(rep) + "</label>";
+    });
+    h += '</div></div><div class="field"><label for="f_obs">Observações do mês</label><textarea id="f_obs" placeholder="Destaques, dificuldades, decisões da equipe…"' + dis + ">" + esc(r.obs || "") + "</textarea></div></div>";
+    $("form").innerHTML = h;
+    updateAssidLive(plan);
+  }
+  function updateAssidLive(plan) {
+    const el = $("assidLive");
+    if (!el) return;
+    const a = assidReal(tab, plan);
+    el.textContent = a == null ? "" : "Assiduidade do mês: " + pct(a);
+  }
+  function syncFormValues() {
+    const r = state.meses[tab];
+    FIELDS.forEach((f) => {
+      const el = $("f_" + f.k);
+      if (el && el !== document.activeElement) el.value = has(r[f.k]) ? r[f.k] : "";
+    });
+    REPORTS.forEach((_, j) => { const el = $("rep" + j); if (el) el.checked = !!(r.relatorios && r.relatorios[j]); });
+    const o = $("f_obs"); if (o && o !== document.activeElement) o.value = r.obs || "";
+  }
+
+  // ---------- Mecanismos ----------
+  function renderMec() {
+    const dis = readOnly ? " disabled" : "";
+    let h = "<thead><tr><th>Meta</th><th style=\"text-align:left\">Mecanismo 1</th><th style=\"text-align:left\">Mecanismo 2</th></tr></thead><tbody>";
+    MEC_ROWS.forEach(([k, label]) => {
+      const m = state.mec[k] || ["", ""];
+      h += "<tr><td>" + esc(label) + "</td>" + [0, 1].map((j) =>
+        '<td style="text-align:left"><input type="text" id="mec_' + k + "_" + j + '" data-mec="' + k + '" data-j="' + j + '" value="' + esc(m[j] || "") + '" placeholder="Descreva a ação"' + dis + "></td>").join("") + "</tr>";
+    });
+    $("mecTable").innerHTML = h + "</tbody>";
+  }
+  function syncMec() {
+    MEC_ROWS.forEach(([k]) => [0, 1].forEach((j) => {
+      const el = $("mec_" + k + "_" + j);
+      if (el && el !== document.activeElement) el.value = (state.mec[k] || [])[j] || "";
+    }));
+  }
+
+  // ---------- Premissas ----------
+  const SCALARS = [
+    ["inicio", "Mês de início da gestão", "month"],
+    ["membrosInicio", "Membros no início da gestão", "int"],
+    ["assiduidadeMeta", "Meta de assiduidade (%)", "pct"],
+    ["retencaoIdeal", "Taxa de renovação ideal (%)", "pct"],
+    ["retencaoAtual", "Taxa de renovação atual (%)", "pct"],
+    ["fatorRef", "Referências por membro/reunião", "dec"],
+    ["opnfBase", "OPNF do período anterior (R$)", "dec"],
+    ["palmsBase", "PALMS do período anterior (presenças)", "int"]
+  ];
+  const ARRAYS = [["reunioes", "Nº de reuniões"], ["novos", "Novos membros planejados"], ["saidasPrev", "Saídas previstas"], ["renovPrev", "Renovações previstas"]];
+  function renderPrem() {
+    const p = state.prem, dis = readOnly ? " disabled" : "";
+    $("premScalars").innerHTML = SCALARS.map(([k, label, t]) => {
+      const v = t === "pct" ? +(p[k] * 100).toFixed(2) : p[k];
+      return '<div class="field"><label for="p_' + k + '">' + esc(label) + '</label><input id="p_' + k + '" data-p="' + k + '" data-t="' + t + '" type="' + (t === "month" ? "month" : "number") + '" step="' + (t === "int" ? 1 : "any") + '" min="0" value="' + esc(v) + '"' + dis + "></div>";
+    }).join("");
+    let h = "<thead><tr><th>Premissa</th>";
+    for (let i = 0; i < 6; i++) h += "<th>" + esc(monthInfo(i).short) + "</th>";
+    h += "</tr></thead><tbody>";
+    ARRAYS.forEach(([k, label]) => {
+      h += "<tr><td>" + esc(label) + "</td>";
+      for (let i = 0; i < 6; i++) h += '<td><input type="number" min="0" step="1" id="pa_' + k + "_" + i + '" data-pa="' + k + '" data-i="' + i + '" value="' + p[k][i] + '"' + dis + "></td>";
+      h += "</tr>";
+    });
+    $("premTable").innerHTML = h + "</tbody>";
+  }
+
+  // ---------- Render all derived ----------
+  function renderDerived() {
+    const plan = computePlan();
+    const ind = summarize(plan);
+    renderHeader(plan);
+    renderOpnf(plan, ind);
+    renderCards(plan, ind);
+    renderMembros(plan);
+    renderMatrix(plan);
+    renderTabs();
+    updateAssidLive(plan);
+    return plan;
+  }
+  function renderAll() {
+    const plan = renderDerived();
+    buildForm(plan);
+    renderMec();
+    renderPrem();
+  }
+
+  // ---------- Persistence ----------
+  const LS_KEY = "bni-gestao-painel-v1";
+  function lsSave() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* storage indisponível */ }
+  }
+  function lsLoad() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (s.prem) state.prem = Object.assign(clone(DEFAULT_PREM), s.prem);
+      if (s.mec) state.mec = s.mec;
+      if (Array.isArray(s.meses)) state.meses = [0, 1, 2, 3, 4, 5].map((i) => s.meses[i] || {});
+    } catch (e) { /* ignora */ }
+  }
+  function setSave(s, txt) {
+    const el = $("saveState");
+    el.dataset.s = s;
+    el.querySelector("span").textContent = txt;
+  }
+
+  const timers = {};
+  const writing = {};
+  const dirty = {};
+  function queueWrite(path, getBody) {
+    if (readOnly) return;
+    if (mode !== "db") { lsSave(); setSave("ok", "Salvo neste navegador"); return; }
+    dirty[path] = getBody;
+    setSave("busy", "Salvando…");
+    clearTimeout(timers[path]);
+    timers[path] = setTimeout(() => flush(path), 700);
+  }
+  async function flush(path) {
+    if (writing[path]) { timers[path] = setTimeout(() => flush(path), 400); return; }
+    const getBody = dirty[path];
+    if (!getBody) return;
+    delete dirty[path];
+    writing[path] = true;
+    try {
+      await db.doc(path).set(getBody());
+      if (!Object.keys(dirty).length) setSave("ok", "Tudo salvo");
+    } catch (e) {
+      if (e && e.code === "invalid_argument") {
+        setReadOnly();
+      } else if (e && e.code === "unavailable") {
+        dirty[path] = dirty[path] || getBody;
+        timers[path] = setTimeout(() => flush(path), 1500 + Math.random() * 1000);
+      } else {
+        setSave("err", "Não foi possível salvar. Tente de novo em instantes.");
+      }
+    } finally {
+      writing[path] = false;
+    }
+  }
+  function setReadOnly() {
+    readOnly = true;
+    setSave("idle", "Somente leitura");
+    document.querySelectorAll("#form input, #form textarea, #mecTable input, #premDetails input").forEach((el) => { el.disabled = true; });
+  }
+
+  // ---------- Events ----------
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("#tabs button");
+    if (!b) return;
+    tab = +b.dataset.i;
+    renderTabs();
+    buildForm(computePlan());
+  });
+  document.addEventListener("keydown", (e) => {
+    const b = e.target.closest && e.target.closest("#tabs button");
+    if (!b || (e.key !== "ArrowRight" && e.key !== "ArrowLeft")) return;
+    tab = (tab + (e.key === "ArrowRight" ? 1 : 5)) % 6;
+    renderTabs();
+    buildForm(computePlan());
+    $("tab" + tab).focus();
+  });
+  document.addEventListener("input", (e) => {
+    const t = e.target;
+    if (t.dataset.k) {
+      const v = t.value === "" ? null : Number(t.value);
+      const r = state.meses[tab];
+      if (v == null || !isFinite(v)) delete r[t.dataset.k]; else r[t.dataset.k] = v;
+      const i = tab;
+      queueWrite("meses/m" + (i + 1), () => clone(state.meses[i]));
+      renderDerived();
+    } else if (t.dataset.rep != null) {
+      const r = state.meses[tab];
+      r.relatorios = r.relatorios || [false, false, false, false];
+      r.relatorios[+t.dataset.rep] = t.checked;
+      const i = tab;
+      queueWrite("meses/m" + (i + 1), () => clone(state.meses[i]));
+    } else if (t.id === "f_obs") {
+      state.meses[tab].obs = t.value;
+      const i = tab;
+      queueWrite("meses/m" + (i + 1), () => clone(state.meses[i]));
+    } else if (t.dataset.mec) {
+      const m = state.mec[t.dataset.mec] = (state.mec[t.dataset.mec] || ["", ""]).slice();
+      m[+t.dataset.j] = t.value;
+      queueWrite("gestao/mecanismos", () => clone(state.mec));
+    } else if (t.dataset.p) {
+      const k = t.dataset.p, ty = t.dataset.t;
+      if (ty === "month") { if (!/^\d{4}-\d{2}$/.test(t.value)) return; state.prem[k] = t.value; }
+      else {
+        if (t.value === "" || !isFinite(Number(t.value))) return;
+        state.prem[k] = ty === "pct" ? Number(t.value) / 100 : Number(t.value);
+      }
+      queueWrite("gestao/premissas", () => clone(state.prem));
+      renderDerived();
+      buildFormKeepFocus();
+    } else if (t.dataset.pa) {
+      if (t.value === "" || !isFinite(Number(t.value))) return;
+      state.prem[t.dataset.pa][+t.dataset.i] = Number(t.value);
+      queueWrite("gestao/premissas", () => clone(state.prem));
+      renderDerived();
+      buildFormKeepFocus();
+    }
+  });
+  function buildFormKeepFocus() {
+    // premissas mudam as dicas do formulário; o foco está nas premissas, então pode reconstruir
+    buildForm(computePlan());
+    // cabeçalhos da tabela de premissas dependem do mês de início
+    const ths = document.querySelectorAll("#premTable thead th");
+    for (let i = 0; i < 6; i++) if (ths[i + 1]) ths[i + 1].textContent = monthInfo(i).short;
+  }
+
+  // Tooltip
+  const tip = $("tip");
+  document.addEventListener("pointermove", (e) => {
+    const t = e.target.closest && e.target.closest("[data-tip]");
+    if (!t) { tip.hidden = true; return; }
+    tip.innerHTML = t.getAttribute("data-tip");
+    tip.hidden = false;
+    const r = tip.getBoundingClientRect();
+    let x = e.clientX + 14, y = e.clientY + 14;
+    if (x + r.width > window.innerWidth - 8) x = e.clientX - r.width - 14;
+    if (y + r.height > window.innerHeight - 8) y = e.clientY - r.height - 14;
+    tip.style.left = Math.max(8, x) + "px";
+    tip.style.top = Math.max(8, y) + "px";
+  });
+  document.addEventListener("pointerleave", () => { tip.hidden = true; });
+
+  // ---------- Boot ----------
+  lsLoad();
+  const cur = currentIndex();
+  tab = Math.min(5, Math.max(0, cur));
+  renderAll();
+  setSave("idle", "Conectando…");
+
+  function applyDoc(path, snap) {
+    if (snap.metadata && snap.metadata.hasPendingWrites) return;
+    if (dirty[path] || writing[path]) return;
+    const d = snap.exists ? clone(snap.data()) : null;
+    if (path === "gestao/premissas") {
+      state.prem = Object.assign(clone(DEFAULT_PREM), d || {});
+      renderDerived();
+      if (!document.activeElement || !document.activeElement.closest("#premDetails")) renderPrem();
+      buildForm(computePlan());
+    } else if (path === "gestao/mecanismos") {
+      state.mec = d || {};
+      syncMec();
+    } else {
+      const i = +path.slice(-1) - 1;
+      state.meses[i] = d || {};
+      renderDerived();
+      if (i === tab) { syncFormValues(); updateAssidLive(computePlan()); }
+    }
+  }
+
+  (async function connect() {
+    let got = null;
+    try { got = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch (e) { got = null; }
+    if (!got) {
+      mode = "local";
+      setSave("idle", "Salvando só neste navegador");
+      return;
+    }
+    db = got;
+    mode = "db";
+    try {
+      const user = await window.claude.use("user");
+      const can = user && user.can ? await user.can("data.write") : null;
+      if (can === false) setReadOnly();
+    } catch (e) { /* sem informação: mantém editável */ }
+    if (!readOnly) setSave("ok", "Tudo salvo");
+    const paths = ["gestao/premissas", "gestao/mecanismos", "meses/m1", "meses/m2", "meses/m3", "meses/m4", "meses/m5", "meses/m6"];
+    paths.forEach((p) => {
+      db.doc(p).onSnapshot((snap) => applyDoc(p, snap), (err) => {
+        if (err && err.code === "revoked") setReadOnly();
+      });
+    });
+  })();
+})();
+</script>
