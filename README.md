@@ -1,6 +1,6 @@
-# Painel da Gestão BNI
+# BNI Despertar · Gestão 9
 
-Dashboard das metas da gestão de out/2026 a mar/2027, montado a partir da planilha `planilhas/METAS_GESTAO.xlsx`.
+Painel de metas da Gestão 9 do BNI Despertar, de out/2026 a mar/2027, montado a partir da planilha `planilhas/METAS_GESTAO.xlsx`.
 
 - `dashboard/index.html`: o painel. Mostra as metas planejadas de cada mês e tem campos para lançar o realizado.
 - `planilhas/METAS_GESTAO.xlsx`: a planilha de metas original.
