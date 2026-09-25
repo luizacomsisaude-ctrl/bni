@@ -24,6 +24,12 @@
   --warn-bg: #fbeed3;
   --crit: #c1272d;
   --crit-bg: #fbe3e2;
+  --s-crit: #b3261e; --s-crit-bg: #fbe2e0;
+  --s-aten: #b54708; --s-aten-bg: #fde8d7;
+  --s-reg: #7a5d00; --s-reg-bg: #f8eec4;
+  --s-bom: #3f7a1c; --s-bom-bg: #e5f1d9;
+  --s-exc: #13704a; --s-exc-bg: #d3efe1;
+  --s-ok: #ffffff; --s-ok-bg: #13704a;
   --none: #6f7784;
   --none-bg: #eceff3;
   --display: "Barlow Semi Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
@@ -52,6 +58,12 @@
     --warn-bg: #36280f;
     --crit: #f07a76;
     --crit-bg: #3a1c1c;
+    --s-crit: #f28b82; --s-crit-bg: #3b1c1a;
+    --s-aten: #f6a15c; --s-aten-bg: #3a2414;
+    --s-reg: #e6c65a; --s-reg-bg: #342c10;
+    --s-bom: #a3d47c; --s-bom-bg: #213019;
+    --s-exc: #5fd49c; --s-exc-bg: #12302a;
+    --s-ok: #0b1f16; --s-ok-bg: #5fd49c;
     --none: #9aa2ae;
     --none-bg: #262b34;
   }
@@ -78,6 +90,12 @@
   --warn-bg: #36280f;
   --crit: #f07a76;
   --crit-bg: #3a1c1c;
+  --s-crit: #f28b82; --s-crit-bg: #3b1c1a;
+  --s-aten: #f6a15c; --s-aten-bg: #3a2414;
+  --s-reg: #e6c65a; --s-reg-bg: #342c10;
+  --s-bom: #a3d47c; --s-bom-bg: #213019;
+  --s-exc: #5fd49c; --s-exc-bg: #12302a;
+  --s-ok: #0b1f16; --s-ok-bg: #5fd49c;
   --none: #9aa2ae;
   --none-bg: #262b34;
 }
@@ -179,9 +197,15 @@ svg text.lbl { fill: var(--ink-2); font-weight: 600; }
 .card .val small { font-size: 15px; color: var(--ink-2); font-weight: 600; }
 .card .sub { font-size: 13px; color: var(--ink-2); margin: 0; }
 .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
-.pill[data-s="good"] { color: var(--good); background: var(--good-bg); }
-.pill[data-s="warn"] { color: var(--warn); background: var(--warn-bg); }
-.pill[data-s="crit"] { color: var(--crit); background: var(--crit-bg); }
+.pill[data-s="crit"] { color: var(--s-crit); background: var(--s-crit-bg); }
+.pill[data-s="aten"] { color: var(--s-aten); background: var(--s-aten-bg); }
+.pill[data-s="reg"] { color: var(--s-reg); background: var(--s-reg-bg); }
+.pill[data-s="bom"] { color: var(--s-bom); background: var(--s-bom-bg); }
+.pill[data-s="exc"] { color: var(--s-exc); background: var(--s-exc-bg); }
+.pill[data-s="ok"] { color: var(--s-ok); background: var(--s-ok-bg); }
+.scale { display: flex; flex-wrap: wrap; gap: 6px; }
+.scale .pill { font-weight: 600; }
+.scale .pill b { font-weight: 700; }
 .pill[data-s="none"] { color: var(--none); background: var(--none-bg); }
 .spark { width: 100%; height: 46px; display: block; }
 
@@ -223,7 +247,8 @@ thead th { font-weight: 600; color: var(--ink-2); font-size: 12.5px; }
 tbody tr:last-child td { border-bottom: 0; }
 td.r { font-weight: 600; }
 td .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-left: 5px; vertical-align: 1px; }
-.dot[data-s="good"] { background: var(--good); } .dot[data-s="warn"] { background: var(--warn); } .dot[data-s="crit"] { background: var(--crit); }
+.dot[data-s="crit"] { background: var(--s-crit); } .dot[data-s="aten"] { background: var(--s-aten); } .dot[data-s="reg"] { background: var(--s-reg); }
+.dot[data-s="bom"] { background: var(--s-bom); } .dot[data-s="exc"] { background: var(--s-exc); } .dot[data-s="ok"] { background: var(--s-ok-bg); }
 .sub-row td { color: var(--ink-3); font-size: 12.5px; }
 .mec td { vertical-align: top; }
 .mec td:first-child { white-space: normal; min-width: 150px; font-weight: 600; }
@@ -289,7 +314,15 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
   <section>
     <div class="sec-head">
       <h2>Indicadores do semestre</h2>
-      <p>Realizado acumulado comparado ao planejado dos meses já lançados. No alvo a partir de 100%, atenção entre 70% e 99%, crítico abaixo de 70%.</p>
+      <p>Realizado acumulado comparado ao planejado dos meses já lançados.</p>
+    </div>
+    <div class="scale" aria-label="Escala de status">
+      <span class="pill" data-s="crit">■ Crítico <b>0–30%</b></span>
+      <span class="pill" data-s="aten">▲ Atenção <b>31–50%</b></span>
+      <span class="pill" data-s="reg">◆ Regular <b>51–70%</b></span>
+      <span class="pill" data-s="bom">● Bom <b>71–90%</b></span>
+      <span class="pill" data-s="exc">★ Excelente <b>91–99%</b></span>
+      <span class="pill" data-s="ok">✔ Atingido <b>100%</b></span>
     </div>
     <div class="cards" id="cards"></div>
   </section>
@@ -458,12 +491,18 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     return possiveis ? Math.max(0, 1 - r.faltas / possiveis) : null;
   }
 
-  function statusOf(ratio, lowerBetter) {
+  function statusOf(ratio) {
     if (ratio == null || !isFinite(ratio)) return "none";
-    if (lowerBetter) return ratio <= 1 ? "good" : ratio <= 1.3 ? "warn" : "crit";
-    return ratio >= 1 ? "good" : ratio >= 0.7 ? "warn" : "crit";
+    // escala da gestão: 0–30 crítico, 31–50 atenção, 51–70 regular, 71–90 bom, 91–99 excelente, 100 atingido
+    const p = Math.round(ratio * 100);
+    return p >= 100 ? "ok" : p > 90 ? "exc" : p > 70 ? "bom" : p > 50 ? "reg" : p > 30 ? "aten" : "crit";
   }
-  const STATUS_TXT = { good: "● No alvo", warn: "▲ Atenção", crit: "■ Crítico", none: "Sem dados" };
+  // indicadores em que menos é melhor (saídas, faltas): dentro do limite = atingido
+  function lowerStatus(real, plan) {
+    if (real <= plan) return "ok";
+    return statusOf(plan / real);
+  }
+  const STATUS_TXT = { crit: "■ Crítico", aten: "▲ Atenção", reg: "◆ Regular", bom: "● Bom", exc: "★ Excelente", ok: "✔ Atingido", none: "Sem dados" };
 
   // ---------- Indicator summaries ----------
   function summarize(plan) {
@@ -525,7 +564,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       if (x.lowerBetter) x.ratio = x.planned ? x.real / x.planned : (x.real ? Infinity : 0);
       else x.ratio = x.planned ? x.real / x.planned : (x.real > 0 ? 1 : null);
       x.status = x.lowerBetter
-        ? (x.real <= x.planned ? "good" : x.real <= x.planned + 1 ? "warn" : "crit")
+        ? lowerStatus(x.real, x.planned)
         : statusOf(x.ratio);
     });
     return ind;
@@ -720,7 +759,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
         if (k === "assid") rv = assidReal(i, plan);
         else if (k) rv = has(state.meses[i][k]) ? state.meses[i][k] : null;
         const kk = k || "n";
-        const st = rv == null || !k ? null : lower ? (rv <= pv ? "good" : rv <= pv + 1 ? "warn" : "crit") : statusOf(pv ? rv / pv : (rv > 0 ? 1 : null));
+        const st = rv == null || !k ? null : lower ? lowerStatus(rv, pv) : statusOf(pv ? rv / pv : (rv > 0 ? 1 : null));
         h += "<td>" + fmtK(kk, pv) + '</td><td class="r">' + (k ? fmtK(kk, rv) : "") + (st && st !== "none" ? '<span class="dot" data-s="' + st + '"></span>' : "") + "</td>";
       }
       h += "</tr>";
