@@ -5,7 +5,7 @@ Painéis das metas da gestão de out/2026 a mar/2027, um por grupo, montados a p
 | Grupo | Painel | Planilha |
 |---|---|---|
 | BNI Despertar · Gestão 9 | `dashboard/index.html` | `planilhas/METAS_GESTAO_DESPERTAR.xlsx` |
-| BNI Excelência | `dashboard/excelencia.html` | `planilhas/METAS_GESTAO_EXCELENCIA.xlsx` |
+| BNI Excelência · Gestão 23 | `dashboard/excelencia.html` | `planilhas/METAS_GESTAO_EXCELENCIA.xlsx` |
 
 Cada painel mostra as metas planejadas de cada mês e tem campos para lançar o realizado. Os dois usam as mesmas fórmulas; mudam só as premissas de cada grupo (o Excelência também mostra a visão de 85 membros).
 
