@@ -23,6 +23,8 @@ As metas planejadas seguem as mesmas fórmulas da planilha:
 - OPNF = reuniões × membros × valor da cadeira por reunião (OPNF do período anterior ÷ PALMS)
 - Faltas máximas = (1 − meta de assiduidade) × membros × reuniões
 
+Qualquer meta planejada pode ser ajustada direto na tabela "Planejado × realizado": clique no valor e digite a nova meta. Ao ajustar o total de membros, as metas que dependem dele e os meses seguintes são recalculados. Apagar o valor volta ao cálculo da planilha.
+
 As premissas (reuniões por mês, novos membros planejados, saídas e renovações previstas, taxas) podem ser editadas no próprio painel, na seção "Premissas das metas".
 
 ## Onde os dados ficam salvos

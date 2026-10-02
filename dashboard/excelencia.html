@@ -251,6 +251,22 @@ td.r { font-weight: 600; }
 td .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-left: 5px; vertical-align: 1px; }
 .dot[data-s="crit"] { background: var(--s-crit); } .dot[data-s="aten"] { background: var(--s-aten); } .dot[data-s="reg"] { background: var(--s-reg); }
 .dot[data-s="bom"] { background: var(--s-bom); } .dot[data-s="exc"] { background: var(--s-exc); } .dot[data-s="ok"] { background: var(--s-ok-bg); }
+#matrix td.pc { padding: 3px 4px; }
+#matrix td.pc input {
+  width: 62px; text-align: right; font: 500 14px var(--body); color: var(--ink-2); font-variant-numeric: tabular-nums;
+  background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 4px 6px; -moz-appearance: textfield; appearance: textfield;
+}
+#matrix td.pc input.w { width: 104px; }
+#matrix td.pc input::-webkit-outer-spin-button, #matrix td.pc input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#matrix td.pc input:hover:not(:disabled) { border-color: var(--line); background: var(--surface); }
+#matrix td.pc input:focus { border-color: var(--accent); background: var(--surface); color: var(--ink); }
+#matrix td.pc.ov input { background: var(--brand-soft); color: var(--ink); font-weight: 700; }
+#matrix td.pc input:disabled { opacity: 1; }
+.matrix-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.matrix-foot .note { display: inline-flex; align-items: center; gap: 8px; }
+.ov-chip { width: 14px; height: 14px; border-radius: 4px; background: var(--brand-soft); border: 1px solid var(--brand); display: inline-block; }
+button.ghost { font: 600 13px var(--body); color: var(--brand); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+button.ghost[data-confirm] { background: var(--brand); border-color: var(--brand); color: #fff; }
 .sub-row td { color: var(--ink-3); font-size: 12.5px; }
 .mec td { vertical-align: top; }
 .mec td:first-child { white-space: normal; min-width: 150px; font-weight: 600; }
@@ -352,9 +368,13 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
   <section>
     <div class="sec-head">
       <h2>Planejado × realizado</h2>
-      <p>Visão completa mês a mês, no mesmo formato da planilha.</p>
+      <p>Visão completa mês a mês, no mesmo formato da planilha. Clique em um valor planejado para ajustar a meta. Ao mudar o total de membros, as metas que dependem dele e os meses seguintes são recalculados. Apague o valor para voltar ao cálculo da planilha.</p>
     </div>
     <div class="tbl-wrap"><table id="matrix"></table></div>
+    <div class="matrix-foot">
+      <span class="note"><i class="ov-chip" aria-hidden="true"></i><span id="ajustesInfo"></span></span>
+      <button type="button" class="ghost" id="resetAjustes" hidden>Voltar todas as metas para a planilha</button>
+    </div>
   </section>
 
   <section>
@@ -393,6 +413,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     retencaoIdeal: 0.80,
     assiduidadeMeta: 0.96,
     fatorRef: 1.12,
+    ajustes: {},
     opnfBase: 15792199,
     palmsBase: 2117
   };
@@ -463,24 +484,29 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     const p = state.prem;
     const vc = p.palmsBase ? p.opnfBase / p.palmsBase : 0;
     const out = [];
+    // metas ajustadas manualmente na tabela planejado × realizado substituem o cálculo da planilha
+    const aj = p.ajustes || {};
+    const ov = (k, i, calc) => (aj[k] && has(aj[k][i]) ? aj[k][i] : calc);
     let prev = p.membrosInicio;
     for (let i = 0; i < 6; i++) {
       const reun = p.reunioes[i] || 0;
-      const prov = Math.round(p.renovPrev[i] * p.retencaoIdeal);
-      const naoRenov = p.renovPrev[i] - prov;
-      const saidasTot = p.saidasPrev[i] + naoRenov;
-      const membros = prev + p.novos[i] - saidasTot;
+      const prov = ov("renov", i, Math.round(p.renovPrev[i] * p.retencaoIdeal));
+      const naoRenov = Math.max(0, p.renovPrev[i] - prov);
+      const saidasTot = ov("saidas", i, p.saidasPrev[i] + naoRenov);
+      const membros = ov("membros", i, prev + p.novos[i] - saidasTot);
       prev = membros;
+      const assid = ov("assid", i, p.assiduidadeMeta);
+      const convidados = ov("convidados", i, membros);
       out.push({
         reun, membros, novos: p.novos[i], renovPrev: p.renovPrev[i], renov: prov, naoRenov, saidas: saidasTot,
-        faltas: Math.floor((1 - p.assiduidadeMeta) * membros * reun + 1e-9),
-        assid: p.assiduidadeMeta,
-        convidados: membros,
-        convSemana: reun ? membros / reun : 0,
-        oao: membros * reun,
-        ueg: membros * reun,
-        refs: Math.round(membros * reun * p.fatorRef),
-        opnf: reun * membros * vc
+        faltas: ov("faltas", i, Math.floor((1 - assid) * membros * reun + 1e-9)),
+        assid,
+        convidados,
+        convSemana: reun ? convidados / reun : 0,
+        oao: ov("oao", i, membros * reun),
+        ueg: ov("ueg", i, membros * reun),
+        refs: ov("refs", i, Math.round(membros * reun * p.fatorRef)),
+        opnf: ov("opnf", i, reun * membros * vc)
       });
     }
     return { months: out, vc };
@@ -535,10 +561,14 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       sub: "Meta do semestre " + nov.total });
 
     // assiduidade: média dos meses com faltas
-    let aSum = 0, aN = 0;
-    for (let i = 0; i < 6; i++) { const a = assidReal(i, plan); if (a != null) { aSum += a; aN++; } }
-    ind.push({ k: "assid", n: "3", label: "Assiduidade", kind: "pct", real: aN ? aSum / aN : 0, planned: aN ? state.prem.assiduidadeMeta : 0,
-      total: state.prem.assiduidadeMeta, count: aN, sub: "Meta " + pct(state.prem.assiduidadeMeta) + " de presença" });
+    let aSum = 0, aN = 0, aPlan = 0, aAll = 0;
+    for (let i = 0; i < 6; i++) {
+      aAll += P[i].assid;
+      const a = assidReal(i, plan);
+      if (a != null) { aSum += a; aPlan += P[i].assid; aN++; }
+    }
+    ind.push({ k: "assid", n: "3", label: "Assiduidade", kind: "pct", real: aN ? aSum / aN : 0, planned: aN ? aPlan / aN : 0,
+      total: aAll / 6, count: aN, sub: "Meta " + pct(aAll / 6) + " de presença" });
 
     const cv = sumK("convidados");
     ind.push({ k: "convidados", n: "4", label: "Convidados", real: cv.real, planned: cv.planned, total: cv.total, count: cv.n,
@@ -741,38 +771,73 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
   }
 
   // ---------- Render: matrix ----------
-  function renderMatrix(plan) {
-    const rows = [
-      ["Reuniões", (i) => plan.months[i].reun, null],
-      ["Novos membros", (i) => plan.months[i].novos, "novos"],
-      ["Total de membros", (i) => plan.months[i].membros, "membros"],
-      ["Faltas no mês (máx.)", (i) => plan.months[i].faltas, "faltas", true],
-      ["Assiduidade", (i) => plan.months[i].assid, "assid"],
-      ["Convidados", (i) => plan.months[i].convidados, "convidados"],
-      ["Um-a-Um", (i) => plan.months[i].oao, "oao"],
-      ["UEG", (i) => plan.months[i].ueg, "ueg"],
-      ["Referências qualificadas", (i) => plan.months[i].refs, "refs"],
-      ["OPNF", (i) => plan.months[i].opnf, "opnf"],
-      ["Renovações (prováveis)", (i) => plan.months[i].renov, "renov"],
-      ["Saídas (total)", (i) => plan.months[i].saidas, "saidas", true]
-    ];
+  const MROWS = [
+    ["reun", "Reuniões", false, false],
+    ["novos", "Novos membros", true, false],
+    ["membros", "Total de membros", true, false],
+    ["faltas", "Faltas no mês (máx.)", true, true],
+    ["assid", "Assiduidade (%)", true, false],
+    ["convidados", "Convidados", true, false],
+    ["oao", "Um-a-Um", true, false],
+    ["ueg", "UEG", true, false],
+    ["refs", "Referências qualificadas", true, false],
+    ["opnf", "OPNF (R$)", true, false],
+    ["renov", "Renovações (prováveis)", true, false],
+    ["saidas", "Saídas (total)", true, true]
+  ];
+  // reuniões e novos membros são premissas da planilha; os demais ficam em prem.ajustes
+  const BASE_ARR = { reun: "reunioes", novos: "novos" };
+  function isAjustado(k, i) {
+    const p = state.prem;
+    if (BASE_ARR[k]) return p[BASE_ARR[k]][i] !== DEFAULT_PREM[BASE_ARR[k]][i];
+    return !!(p.ajustes && p.ajustes[k] && has(p.ajustes[k][i]));
+  }
+  function planInputValue(k, v) {
+    if (k === "assid") return +(v * 100).toFixed(1);
+    if (k === "opnf") return Math.round(v);
+    return v;
+  }
+  let matrixBuilt = false;
+  function buildMatrix() {
+    const dis = readOnly ? " disabled" : "";
     let h = "<thead><tr><th>Indicador</th>";
-    for (let i = 0; i < 6; i++) h += '<th colspan="2">' + esc(monthInfo(i).short) + "</th>";
+    for (let i = 0; i < 6; i++) h += '<th colspan="2" id="mh' + i + '"></th>';
     h += "</tr><tr><th></th>" + "<th>Plan.</th><th>Real</th>".repeat(6) + "</tr></thead><tbody>";
-    rows.forEach(([label, pf, k, lower]) => {
+    MROWS.forEach(([k, label, hasReal]) => {
       h += "<tr><td>" + esc(label) + "</td>";
       for (let i = 0; i < 6; i++) {
-        const pv = pf(i);
-        let rv = null;
-        if (k === "assid") rv = assidReal(i, plan);
-        else if (k) rv = has(state.meses[i][k]) ? state.meses[i][k] : null;
-        const kk = k || "n";
-        const st = rv == null || !k ? null : lower ? lowerStatus(rv, pv) : statusOf(pv ? rv / pv : (rv > 0 ? 1 : null));
-        h += "<td>" + fmtK(kk, pv) + '</td><td class="r">' + (k ? fmtK(kk, rv) : "") + (st && st !== "none" ? '<span class="dot" data-s="' + st + '"></span>' : "") + "</td>";
+        h += '<td class="pc" id="mpc_' + k + "_" + i + '"><input type="number" inputmode="decimal" min="0" step="any"' +
+          (k === "opnf" ? ' class="w"' : "") + ' id="mp_' + k + "_" + i + '" data-mp="' + k + '" data-i="' + i + '"' +
+          ' aria-label="' + esc(label) + " planejado em " + esc(monthInfo(i).short) + '"' + dis + "></td>" +
+          '<td class="r" id="mr_' + k + "_" + i + '"></td>';
       }
       h += "</tr>";
     });
     $("matrix").innerHTML = h + "</tbody>";
+    matrixBuilt = true;
+  }
+  function renderMatrix(plan) {
+    if (!matrixBuilt) buildMatrix();
+    for (let i = 0; i < 6; i++) $("mh" + i).textContent = monthInfo(i).short;
+    MROWS.forEach(([k, , hasReal, lower]) => {
+      for (let i = 0; i < 6; i++) {
+        const pv = plan.months[i][k];
+        const inp = $("mp_" + k + "_" + i);
+        if (inp !== document.activeElement) inp.value = planInputValue(k, pv);
+        const aj = isAjustado(k, i);
+        $("mpc_" + k + "_" + i).classList.toggle("ov", aj);
+        inp.title = aj ? "Meta ajustada. Apague o valor para voltar ao cálculo da planilha." : "Meta calculada pela planilha. Digite para ajustar.";
+        if (!hasReal) continue;
+        let rv = null;
+        if (k === "assid") rv = assidReal(i, plan);
+        else rv = has(state.meses[i][k]) ? state.meses[i][k] : null;
+        const st = rv == null ? null : lower ? lowerStatus(rv, pv) : statusOf(pv ? rv / pv : (rv > 0 ? 1 : null));
+        $("mr_" + k + "_" + i).innerHTML = fmtK(k, rv) + (st && st !== "none" ? '<span class="dot" data-s="' + st + '"></span>' : "");
+      }
+    });
+    const n = MROWS.reduce((acc, [k]) => acc + [0, 1, 2, 3, 4, 5].filter((i) => isAjustado(k, i)).length, 0);
+    $("ajustesInfo").textContent = n ? n + (n > 1 ? " metas ajustadas" : " meta ajustada") + " em relação à planilha." : "Todas as metas seguem o cálculo da planilha.";
+    $("resetAjustes").hidden = !n;
   }
 
   // ---------- Entry form ----------
@@ -787,7 +852,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     const hint = {
       novos: "Planejado: <b>" + pm.novos + "</b>",
       membros: "Planejado: <b>" + pm.membros + "</b>",
-      faltas: "Máximo para " + pct(state.prem.assiduidadeMeta) + ": <b>" + pm.faltas + "</b> (" + pm.reun + " reuniões)",
+      faltas: "Máximo para " + pct(pm.assid) + ": <b>" + pm.faltas + "</b> (" + pm.reun + " reuniões)",
       convidados: "Planejado: <b>" + pm.convidados + "</b> · " + nf1.format(pm.convSemana) + " por reunião",
       oao: "Planejado: <b>" + pm.oao + "</b>",
       ueg: "Planejado: <b>" + pm.ueg + "</b>",
@@ -953,7 +1018,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
   function setReadOnly() {
     readOnly = true;
     setSave("idle", "Somente leitura");
-    document.querySelectorAll("#form input, #form textarea, #mecTable input, #premDetails input").forEach((el) => { el.disabled = true; });
+    document.querySelectorAll("#form input, #form textarea, #mecTable input, #premDetails input, #matrix input, #resetAjustes").forEach((el) => { el.disabled = true; });
   }
 
   // ---------- Events ----------
@@ -995,6 +1060,22 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       const m = state.mec[t.dataset.mec] = (state.mec[t.dataset.mec] || ["", ""]).slice();
       m[+t.dataset.j] = t.value;
       queueWrite("gestao/mecanismos", () => clone(state.mec));
+    } else if (t.dataset.mp) {
+      const k = t.dataset.mp, i = +t.dataset.i;
+      const n = t.value === "" ? null : Number(t.value);
+      if (n != null && (!isFinite(n) || n < 0)) return;
+      if (BASE_ARR[k]) {
+        state.prem[BASE_ARR[k]][i] = n == null ? DEFAULT_PREM[BASE_ARR[k]][i] : n;
+      } else {
+        const aj = state.prem.ajustes = Object.assign({}, state.prem.ajustes);
+        const row = aj[k] = Object.assign({}, aj[k]);
+        if (n == null) delete row[i]; else row[i] = k === "assid" ? n / 100 : n;
+        if (!Object.keys(row).length) delete aj[k];
+      }
+      queueWrite("gestao/premissas", () => clone(state.prem));
+      renderDerived();
+      buildForm(computePlan());
+      if (BASE_ARR[k]) renderPrem();
     } else if (t.dataset.p) {
       const k = t.dataset.p, ty = t.dataset.t;
       if (ty === "month") { if (!/^\d{4}-\d{2}$/.test(t.value)) return; state.prem[k] = t.value; }
@@ -1012,6 +1093,30 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       renderDerived();
       buildFormKeepFocus();
     }
+  });
+  // ao sair de um campo da tabela, mostra o valor recalculado (ex.: campo apagado volta ao cálculo)
+  document.addEventListener("focusout", (e) => {
+    if (e.target.dataset && e.target.dataset.mp) setTimeout(renderDerived, 0);
+  });
+  let resetTimer = null;
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("#resetAjustes");
+    if (!b || readOnly) return;
+    if (!b.dataset.confirm) {
+      b.dataset.confirm = "1";
+      b.textContent = "Clique de novo para confirmar";
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => { delete b.dataset.confirm; b.textContent = "Voltar todas as metas para a planilha"; }, 4000);
+      return;
+    }
+    clearTimeout(resetTimer);
+    delete b.dataset.confirm;
+    b.textContent = "Voltar todas as metas para a planilha";
+    state.prem.ajustes = {};
+    state.prem.reunioes = DEFAULT_PREM.reunioes.slice();
+    state.prem.novos = DEFAULT_PREM.novos.slice();
+    queueWrite("gestao/premissas", () => clone(state.prem));
+    renderAll();
   });
   function buildFormKeepFocus() {
     // premissas mudam as dicas do formulário; o foco está nas premissas, então pode reconstruir
