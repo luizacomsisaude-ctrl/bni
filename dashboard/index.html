@@ -457,7 +457,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     <div class="panel conv-entry">
       <h3>Total de negócios e referências mês a mês</h3>
       <div class="tbl-wrap"><table class="ctbl" id="convTable"></table></div>
-      <p class="note">Mês sem total de negócios digitado usa o OPNF lançado no mês (aparece em cinza no campo). As referências são as mesmas do lançamento do mês: mudar aqui muda lá também.</p>
+      <p class="note">Estes números são só deste indicador. Eles não mudam as metas nem os resultados lançados no mês.</p>
     </div>
     <div id="convBody" class="conv-body"></div>
     <div id="convChartBox"></div>
@@ -1091,7 +1091,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     let h = "<thead><tr><th></th>";
     for (let i = 0; i < 6; i++) h += '<th id="ch' + i + '"></th>';
     h += '<th style="text-align:right">Total</th></tr></thead><tbody>';
-    [["negociosValor", "Total de negócios (R$)", "cv", "decimal", "0.01"], ["refs", "Referências", "cr", "numeric", "1"]].forEach(([k, label, pre, mode, step]) => {
+    [["negociosValor", "Total de negócios (R$)", "cv", "decimal", "0.01"], ["refsConv", "Referências", "cr", "numeric", "1"]].forEach(([k, label, pre, mode, step]) => {
       h += "<tr><td>" + label + "</td>";
       for (let i = 0; i < 6; i++) h += '<td><input type="number" inputmode="' + mode + '" min="0" step="' + step + '" id="' + pre + i + '" data-k="' + k + '" data-ci="' + i + '" placeholder="—" aria-label="' + label + " em " + esc(monthInfo(i).short) + '"' + dis + "></td>";
       h += '<td class="tot num" id="' + pre + 'T"></td></tr>';
@@ -1117,33 +1117,28 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     const nf2 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
     const pctTxt = (v) => (v == null ? "—" : nf1.format(v * 100) + "%");
 
-    // total de negócios do mês: o digitado no quadro ou, se vazio, o OPNF lançado
-    const valorMes = (i) => has(M[i].negociosValor) ? M[i].negociosValor : (has(M[i].opnf) ? M[i].opnf : null);
-    let V = 0, Q = 0, Rf = 0, nConv = 0, usaOpnf = false, opnfPlanSame = 0, refsPlanSame = 0, valorT = 0, refsT = 0, qT = 0;
+    // dados próprios do indicador: não usam o OPNF, as referências nem as metas do mês
+    const valorMes = (i) => has(M[i].negociosValor) ? M[i].negociosValor : null;
+    let V = 0, Q = 0, Rf = 0, nConv = 0, valorT = 0, refsT = 0, qT = 0;
     const monthsConv = [];
     for (let i = 0; i < 6; i++) {
-      const v = valorMes(i), r = M[i].refs;
-      const fromOpnf = !has(M[i].negociosValor) && v != null;
+      const v = valorMes(i), r = M[i].refsConv;
       const q = tk && v != null ? v / tk : null;
       if (v != null) valorT += v;
       if (has(r)) refsT += r;
       if (q != null) qT += q;
       const c = q != null && has(r) && r > 0 ? q / r : null;
-      if (c != null) { V += v; Q += q; Rf += r; nConv++; if (fromOpnf) usaOpnf = true; opnfPlanSame += P[i].opnf; refsPlanSame += P[i].refs; }
-      monthsConv.push({ real: c, plan: tk && P[i].refs ? (P[i].opnf / tk) / P[i].refs : null, v, r: has(r) ? r : null, q, fromOpnf });
+      if (c != null) { V += v; Q += q; Rf += r; nConv++; }
+      monthsConv.push({ real: c, plan: null, v, r: has(r) ? r : null, q });
     }
     const conv = nConv ? Q / Rf : null;
-    const opnfPlanTot = P.reduce((a, m) => a + m.opnf, 0), refsPlanTot = P.reduce((a, m) => a + m.refs, 0);
-    const convMeta = tk ? (nConv ? (opnfPlanSame / tk) / refsPlanSame : (opnfPlanTot / tk) / refsPlanTot) : null;
-    const st = conv != null && convMeta ? statusOf(conv / convMeta) : "none";
 
     // quadro mês a mês
     for (let i = 0; i < 6; i++) {
       $("ch" + i).textContent = monthInfo(i).short;
       const ev = $("cv" + i), er = $("cr" + i);
       if (ev !== document.activeElement) ev.value = has(M[i].negociosValor) ? M[i].negociosValor : "";
-      ev.placeholder = has(M[i].opnf) ? nf0.format(Math.round(M[i].opnf)) : "—";
-      if (er !== document.activeElement) er.value = has(M[i].refs) ? M[i].refs : "";
+      if (er !== document.activeElement) er.value = has(M[i].refsConv) ? M[i].refsConv : "";
       const d = monthsConv[i];
       $("cq" + i).textContent = d.q == null ? "—" : nf1.format(d.q);
       $("cc" + i).textContent = pctTxt(d.real);
@@ -1170,21 +1165,16 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
         '<div class="conv-rate"><div class="eyebrow">Taxa de conversão do time · ' + esc(tag) + "</div>" +
         '<div class="big num">' + pctTxt(conv) + "</div>" +
         (conv > 0 ? '<div class="per">1 negócio a cada <b>' + nf2.format(1 / conv) + "</b> referências</div>" : "") +
-        '<div><span class="pill" data-s="' + st + '">' + STATUS_TXT[st] + " · meta " + pctTxt(convMeta) + "</span></div></div>" +
-        eq(V, Rf, usaOpnf ? "Meses com total de negócios e referências. Onde o total não foi digitado, entra o OPNF do mês." : "Meses com total de negócios e referências lançados.") + "</div>";
+        "</div>" +
+        eq(V, Rf, "Meses com total de negócios e referências lançados no quadro acima.") + "</div>";
     } else {
-      hero = '<div class="panel conv-hero">' +
-        '<div class="conv-rate"><div class="eyebrow">Meta de conversão do semestre</div><div class="big num">' + pctTxt(convMeta) + "</div>" +
-        '<div class="per">1 negócio a cada <b>' + nf2.format(1 / convMeta) + '</b> referências</div>' +
-        '<div><span class="pill" data-s="none">Lance o total de negócios e as referências para ver o realizado</span></div></div>' +
-        eq(opnfPlanTot, refsPlanTot, "Valores planejados do semestre (OPNF planejado e referências planejadas).") + "</div>";
+      hero = '<div class="panel"><p class="conv-empty"><b>Lance o total de negócios e as referências</b> no quadro acima para ver a taxa de conversão do time.</p></div>';
     }
 
     body.innerHTML = hero;
 
-    const hasAny = tk && monthsConv.some((d) => d.real != null || d.plan != null);
+    const hasAny = tk && monthsConv.some((d) => d.real != null);
     $("convChartBox").innerHTML = hasAny ? '<div class="panel chart-panel"><h3>Conversão por mês</h3>' +
-      '<div class="legend"><span><i class="real"></i>Realizado</span><span><i class="line"></i>Meta</span></div>' +
       convChart(monthsConv) + "</div>" : "";
   }
   function convChart(series) {
@@ -1209,8 +1199,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       if (d.plan != null) pts.push([cx, y(d.plan)]);
       s += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(monthInfo(i).short) + "</text>";
       const tip = "<b>" + esc(monthInfo(i).short) + "</b><br>Conversão: " + (d.real == null ? "—" : nf1.format(d.real * 100) + "%") +
-        "<br>Meta: " + (d.plan == null ? "—" : nf1.format(d.plan * 100) + "%") +
-        "<br>Total de negócios: " + (d.v == null ? "—" : brl.format(d.v) + (d.fromOpnf ? " (OPNF)" : "")) + "<br>Negócios: " + (d.q == null ? "—" : nf1.format(d.q)) + "<br>Referências: " + (d.r == null ? "—" : nf0.format(d.r));
+        "<br>Total de negócios: " + (d.v == null ? "—" : brl.format(d.v)) + "<br>Negócios: " + (d.q == null ? "—" : nf1.format(d.q)) + "<br>Referências: " + (d.r == null ? "—" : nf0.format(d.r));
       s += '<rect class="hit" x="' + (padL + gw * i + 2) + '" y="' + padT + '" width="' + (gw - 4) + '" height="' + ih + '" rx="6" data-tip="' + esc(tip) + '"/>';
     });
     if (pts.length > 1) s += '<path class="l-plan" d="M' + pts.map((q) => q.join(",")).join("L") + '"/>';
@@ -1373,7 +1362,6 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       if (v == null || !isFinite(v)) delete r[t.dataset.k]; else r[t.dataset.k] = v;
       queueWrite("meses/m" + (i + 1), () => clone(state.meses[i]));
       renderDerived();
-      if (t.dataset.ci != null && i === tab) syncFormValues();
     } else if (t.dataset.rep != null) {
       const r = state.meses[tab];
       r.relatorios = r.relatorios || [false, false, false, false];
