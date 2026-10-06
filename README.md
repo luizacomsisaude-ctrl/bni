@@ -29,6 +29,8 @@ Qualquer meta planejada pode ser ajustada direto na tabela "Planejado × realiza
 
 A seção "Renovantes" guarda os nomes de quem renova a afiliação em cada mês, com a situação de cada um (pendente, renovou, não renovou).
 
+A seção "Valor de cadeira e conversão" mostra a eficiência do time: OPNF ÷ ticket médio = negócios; negócios ÷ referências = taxa de conversão. Também traz o valor de cadeira do grupo (OPNF ÷ membros), o valor da cadeira por reunião e o OPNF por referência. O ticket médio de cada grupo é digitado no próprio painel.
+
 As premissas (reuniões por mês, novos membros planejados, saídas e renovações previstas, taxas) podem ser editadas no próprio painel, na seção "Premissas das metas".
 
 ## Onde os dados ficam salvos

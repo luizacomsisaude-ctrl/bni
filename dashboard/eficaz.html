@@ -265,6 +265,7 @@ td .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; ma
 .start-field { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
 .start-field label { font-weight: 700; font-size: 15px; }
 #startMembros { width: 90px; text-align: right; font-weight: 700; }
+#ticketMedio { width: 150px; text-align: right; font-weight: 700; }
 .start-field .note { flex: 1 1 260px; }
 .renov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 12px; }
 .rcard { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 10px; align-content: start; }
@@ -285,6 +286,24 @@ td .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; ma
 .radd { display: flex; gap: 6px; }
 .radd input[type="text"] { font-size: 15px; padding: 6px 9px; }
 .rempty { font-size: 13px; color: var(--ink-3); margin: 0; }
+.conv-body { display: grid; gap: 12px; }
+.conv-hero { display: grid; grid-template-columns: minmax(0, 0.7fr) minmax(0, 2fr); gap: 20px; align-items: center; }
+.conv-rate { display: grid; gap: 10px; align-content: start; }
+.conv-rate .big { color: var(--ink); }
+.conv-rate .per { font-size: 15px; color: var(--ink-2); }
+.conv-rate .per b { color: var(--ink); }
+.eq { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+.eq-term { flex: 1 1 88px; min-width: 0; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; display: grid; gap: 2px; align-content: center; }
+.eq-term small { font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+.eq-term b { font-family: var(--display); font-size: 20px; font-weight: 700; line-height: 1.1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.eq-term.res { background: var(--brand-soft); }
+.eq-term.res b { color: var(--brand); }
+.eq-op { align-self: center; font-family: var(--display); font-size: 20px; font-weight: 700; color: var(--ink-3); }
+.eq-cap { font-size: 12.5px; color: var(--ink-3); margin: 0; }
+.conv-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 12px; }
+.conv-tiles .card .val { font-size: 28px; }
+.conv-empty { margin: 0; color: var(--ink-2); }
+@media (max-width: 820px) { .conv-hero { grid-template-columns: 1fr; } .eq-op { flex: 0 0 auto; } }
 .matrix-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
 .matrix-foot .note { display: inline-flex; align-items: center; gap: 8px; }
 .ov-chip { width: 14px; height: 14px; border-radius: 4px; background: var(--brand-soft); border: 1px solid var(--brand); display: inline-block; }
@@ -421,6 +440,19 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     <div class="tbl-wrap"><table class="mec" id="mecTable"></table></div>
   </section>
 
+  <section id="conversao">
+    <div class="sec-head">
+      <h2>Valor de cadeira e conversão</h2>
+      <p>A eficiência do time: quantos negócios o OPNF representa e quantas referências foram precisas para chegar lá. Usa o OPNF e as referências lançados mês a mês.</p>
+    </div>
+    <div class="start-field">
+      <label for="ticketMedio">Ticket médio por negócio</label>
+      <input type="number" inputmode="decimal" min="0" step="any" id="ticketMedio" data-p="ticketMedio" data-t="dec" placeholder="R$">
+      <span class="note">Valor médio de um negócio fechado no grupo. Divide o OPNF para chegar ao número de negócios.</span>
+    </div>
+    <div id="convBody" class="conv-body"></div>
+  </section>
+
   <details id="premDetails">
     <summary>Premissas das metas</summary>
     <div class="inner">
@@ -449,6 +481,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     retencaoIdeal: 0.80,
     assiduidadeMeta: 0.95,
     fatorRef: 1.12,
+    ticketMedio: null,
     ajustes: {},
     opnfBase: 5368063,
     palmsBase: 1405
@@ -1047,6 +1080,124 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     }, 0);
   });
 
+  // ---------- Valor de cadeira e conversão ----------
+  function renderConv(plan) {
+    const body = $("convBody");
+    if (!body) return;
+    const tkEl = $("ticketMedio");
+    const tk = has(state.prem.ticketMedio) && state.prem.ticketMedio > 0 ? state.prem.ticketMedio : null;
+    if (tkEl && tkEl !== document.activeElement) tkEl.value = tk == null ? "" : tk;
+    if (tkEl) tkEl.disabled = readOnly;
+    const P = plan.months, M = state.meses;
+
+    // meses com OPNF e referências lançados entram na conversão
+    let opnfR = 0, refsR = 0, nConv = 0, opnfPlanSame = 0, refsPlanSame = 0;
+    let opnfAll = 0, nOpnf = 0, presencas = 0, opnfPlanO = 0, lastO = -1;
+    const monthsConv = [];
+    for (let i = 0; i < 6; i++) {
+      const o = M[i].opnf, r = M[i].refs;
+      if (has(o)) {
+        opnfAll += o; nOpnf++; lastO = i; opnfPlanO += P[i].opnf;
+        presencas += (has(M[i].membros) ? M[i].membros : P[i].membros) * P[i].reun;
+      }
+      if (has(o) && has(r) && r > 0) {
+        opnfR += o; refsR += r; nConv++; opnfPlanSame += P[i].opnf; refsPlanSame += P[i].refs;
+      }
+      monthsConv.push({
+        real: tk && has(o) && has(r) && r > 0 ? (o / tk) / r : null,
+        plan: tk && P[i].refs ? (P[i].opnf / tk) / P[i].refs : null,
+        o: has(o) ? o : null, r: has(r) ? r : null
+      });
+    }
+    const opnfPlanTot = P.reduce((a, m) => a + m.opnf, 0), refsPlanTot = P.reduce((a, m) => a + m.refs, 0);
+    const useReal = nConv > 0;
+    const O = useReal ? opnfR : opnfPlanTot, Rf = useReal ? refsR : refsPlanTot;
+    const negocios = tk ? O / tk : null;
+    const conv = negocios != null && Rf ? negocios / Rf : null;
+    const convMeta = tk ? (useReal ? (opnfPlanSame / tk) / refsPlanSame : (opnfPlanTot / tk) / refsPlanTot) : null;
+    const st = useReal && conv != null && convMeta ? statusOf(conv / convMeta) : "none";
+
+    // valor de cadeira: OPNF por membro
+    let membrosAtual = state.prem.membrosInicio;
+    for (let i = 0; i < 6; i++) if (has(M[i].membros)) membrosAtual = M[i].membros;
+    const vcGrupo = nOpnf && membrosAtual ? opnfAll / membrosAtual : null;
+    const vcGrupoPlan = lastO >= 0 ? opnfPlanO / P[lastO].membros : null;
+    const vcGrupoMeta = opnfPlanTot / P[5].membros;
+    const vcReuniao = presencas ? opnfAll / presencas : null;
+    const valorRef = useReal ? opnfR / refsR : null;
+    const valorRefPlan = useReal ? opnfPlanSame / refsPlanSame : opnfPlanTot / refsPlanTot;
+
+    const nf2 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
+    const tag = useReal ? (nConv === 6 ? "Semestre" : "Acumulado de " + nConv + (nConv > 1 ? " meses" : " mês")) : "Meta do semestre (planejado)";
+
+    let hero;
+    if (!tk) {
+      hero = '<div class="panel"><p class="conv-empty"><b>Informe o ticket médio</b> no campo acima para calcular os negócios e a taxa de conversão. O valor de cadeira e o valor por referência já aparecem abaixo.</p></div>';
+    } else {
+      const perRef = conv ? 1 / conv : null;
+      hero = '<div class="panel conv-hero">' +
+        '<div class="conv-rate"><div class="eyebrow">Taxa de conversão do time · ' + esc(tag) + "</div>" +
+        '<div class="big num">' + (conv == null ? "—" : nf1.format(conv * 100) + "%") + "</div>" +
+        (perRef ? '<div class="per">1 negócio a cada <b>' + nf2.format(perRef) + "</b> referências</div>" : "") +
+        "<div>" + (useReal
+          ? '<span class="pill" data-s="' + st + '">' + STATUS_TXT[st] + " · meta " + nf1.format(convMeta * 100) + "%</span>"
+          : '<span class="pill" data-s="none">Lance OPNF e referências para ver o realizado</span>') + "</div></div>" +
+        '<div class="eq-wrap" style="display:grid;gap:8px"><div class="eq" aria-label="Cálculo da conversão">' +
+        '<div class="eq-term"><small>OPNF</small><b>' + brlShort(O) + "</b></div><span class=\"eq-op\">÷</span>" +
+        '<div class="eq-term"><small>Ticket médio</small><b>' + brl.format(tk) + "</b></div><span class=\"eq-op\">=</span>" +
+        '<div class="eq-term"><small>Negócios</small><b>' + nf1.format(negocios) + "</b></div><span class=\"eq-op\">÷</span>" +
+        '<div class="eq-term"><small>Referências</small><b>' + nf0.format(Rf) + "</b></div><span class=\"eq-op\">=</span>" +
+        '<div class="eq-term res"><small>Conversão</small><b>' + (conv == null ? "—" : nf1.format(conv * 100) + "%") + "</b></div>" +
+        '</div><p class="eq-cap">' + (useReal ? "Meses com OPNF e referências lançados." : "Valores planejados do semestre. O realizado entra assim que houver lançamentos.") + "</p></div></div>";
+    }
+
+    const tile = (label, val, sub) => '<article class="card"><div class="card-top"><h3>' + esc(label) + '</h3></div><div class="val num">' + val + '</div><p class="sub">' + sub + "</p></article>";
+    const tiles = '<div class="conv-tiles">' +
+      tile("Valor de cadeira do grupo", vcGrupo == null ? "—" : brlShort(vcGrupo),
+        esc((vcGrupo == null ? "OPNF ÷ membros. " : "OPNF ÷ " + membrosAtual + " membros. ") + (vcGrupoPlan != null ? "Planejado até agora " + brlShort(vcGrupoPlan) + " · " : "") + "meta do semestre " + brlShort(vcGrupoMeta))) +
+      tile("Valor da cadeira por reunião", vcReuniao == null ? "—" : brl.format(vcReuniao),
+        esc("OPNF ÷ (membros × reuniões). Período anterior: " + brl.format(plan.vc))) +
+      tile("Negócios fechados", negocios == null ? "—" : nf1.format(negocios),
+        esc(tk ? "OPNF ÷ ticket médio de " + brl.format(tk) + (useReal ? "" : " (planejado)") : "Informe o ticket médio")) +
+      tile("OPNF por referência", valorRef == null ? "—" : brl.format(valorRef),
+        esc((valorRef == null ? "OPNF ÷ referências. " : "") + "Planejado " + brl.format(valorRefPlan))) +
+      "</div>";
+
+    const chart = tk ? '<div class="panel chart-panel"><h3>Conversão por mês</h3>' +
+      '<div class="legend"><span><i class="real"></i>Realizado</span><span><i class="line"></i>Meta</span></div>' +
+      convChart(monthsConv) + "</div>" : "";
+    body.innerHTML = hero + tiles + chart;
+  }
+  function convChart(series) {
+    const W = 1000, H = 230, padL = 48, padR = 12, padT = 22, padB = 26;
+    const vals = series.flatMap((d) => [d.real, d.plan]).filter((v) => v != null);
+    const max = niceMax(Math.max(0.1, ...vals) * 1.1);
+    const iw = W - padL - padR, ih = H - padT - padB, gw = iw / 6, bw = Math.min(46, gw * 0.42);
+    const y = (v) => padT + ih - (v / max) * ih;
+    let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img" aria-label="Taxa de conversão por mês">';
+    for (let t = 0; t <= 4; t++) {
+      const v = (max / 4) * t;
+      s += '<line class="grid" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>';
+      s += '<text x="' + (padL - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + nf0.format(v * 100) + "%</text>";
+    }
+    const pts = [];
+    series.forEach((d, i) => {
+      const cx = padL + gw * i + gw / 2;
+      if (d.real != null) {
+        s += roundBar(cx - bw / 2, y(d.real), bw, padT + ih - y(d.real), "b-real");
+        s += '<text class="lbl" x="' + cx + '" y="' + (y(d.real) - 6) + '" text-anchor="middle">' + nf1.format(d.real * 100) + "%</text>";
+      }
+      if (d.plan != null) pts.push([cx, y(d.plan)]);
+      s += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(monthInfo(i).short) + "</text>";
+      const tip = "<b>" + esc(monthInfo(i).short) + "</b><br>Conversão: " + (d.real == null ? "—" : nf1.format(d.real * 100) + "%") +
+        "<br>Meta: " + (d.plan == null ? "—" : nf1.format(d.plan * 100) + "%") +
+        "<br>OPNF: " + (d.o == null ? "—" : brl.format(d.o)) + "<br>Referências: " + (d.r == null ? "—" : nf0.format(d.r));
+      s += '<rect class="hit" x="' + (padL + gw * i + 2) + '" y="' + padT + '" width="' + (gw - 4) + '" height="' + ih + '" rx="6" data-tip="' + esc(tip) + '"/>';
+    });
+    if (pts.length > 1) s += '<path class="l-plan" d="M' + pts.map((q) => q.join(",")).join("L") + '"/>';
+    return s + "</svg>";
+  }
+
   // ---------- Mecanismos ----------
   function renderMec() {
     const dis = readOnly ? " disabled" : "";
@@ -1075,13 +1226,14 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     ["retencaoAtual", "Taxa de renovação atual (%)", "pct"],
     ["fatorRef", "Referências por membro/reunião", "dec"],
     ["opnfBase", "OPNF do período anterior (R$)", "dec"],
-    ["palmsBase", "PALMS do período anterior (presenças)", "int"]
+    ["palmsBase", "PALMS do período anterior (presenças)", "int"],
+    ["ticketMedio", "Ticket médio por negócio (R$)", "dec"]
   ];
   const ARRAYS = [["reunioes", "Nº de reuniões"], ["novos", "Novos membros planejados"], ["saidasPrev", "Saídas previstas"], ["renovPrev", "Renovações previstas"]];
   function renderPrem() {
     const p = state.prem, dis = readOnly ? " disabled" : "";
     $("premScalars").innerHTML = SCALARS.map(([k, label, t]) => {
-      const v = t === "pct" ? +(p[k] * 100).toFixed(2) : p[k];
+      const v = p[k] == null ? "" : t === "pct" ? +(p[k] * 100).toFixed(2) : p[k];
       return '<div class="field"><label for="p_' + k + '">' + esc(label) + '</label><input id="p_' + k + '" data-p="' + k + '" data-t="' + t + '" type="' + (t === "month" ? "month" : "number") + '" step="' + (t === "int" ? 1 : "any") + '" min="0" value="' + esc(v) + '"' + dis + "></div>";
     }).join("");
     let h = "<thead><tr><th>Premissa</th>";
@@ -1107,6 +1259,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     renderTabs();
     updateAssidLive(plan);
     renderRenov();
+    renderConv(plan);
     return plan;
   }
   function renderAll() {
@@ -1174,7 +1327,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
   function setReadOnly() {
     readOnly = true;
     setSave("idle", "Somente leitura");
-    document.querySelectorAll("#form input, #form textarea, #mecTable input, #premDetails input, #matrix input, #resetAjustes, #startMembros, #renovGrid input, #renovGrid select, #renovGrid button").forEach((el) => { el.disabled = true; });
+    document.querySelectorAll("#form input, #form textarea, #mecTable input, #premDetails input, #matrix input, #resetAjustes, #startMembros, #renovGrid input, #renovGrid select, #renovGrid button, #ticketMedio").forEach((el) => { el.disabled = true; });
   }
 
   // ---------- Events ----------
