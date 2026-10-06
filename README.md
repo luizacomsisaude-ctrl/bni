@@ -27,6 +27,8 @@ As metas planejadas seguem as mesmas fórmulas da planilha:
 
 Qualquer meta planejada pode ser ajustada direto na tabela "Planejado × realizado": clique no valor e digite a nova meta. Ao ajustar o total de membros, as metas que dependem dele e os meses seguintes são recalculados. Apagar o valor volta ao cálculo da planilha.
 
+A seção "Renovantes" guarda os nomes de quem renova a afiliação em cada mês, com a situação de cada um (pendente, renovou, não renovou).
+
 As premissas (reuniões por mês, novos membros planejados, saídas e renovações previstas, taxas) podem ser editadas no próprio painel, na seção "Premissas das metas".
 
 ## Onde os dados ficam salvos
