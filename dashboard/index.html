@@ -783,11 +783,12 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     ["ueg", "UEG", true, false],
     ["refs", "Referências qualificadas", true, false],
     ["opnf", "OPNF (R$)", true, false],
-    ["renov", "Renovações (prováveis)", true, false],
+    ["renovPrev", "Renovações previstas", false, false],
+    ["renov", "Renovações prováveis (meta)", true, false],
     ["saidas", "Saídas (total)", true, true]
   ];
-  // reuniões e novos membros são premissas da planilha; os demais ficam em prem.ajustes
-  const BASE_ARR = { reun: "reunioes", novos: "novos" };
+  // reuniões, novos membros e renovações previstas são premissas da planilha; os demais ficam em prem.ajustes
+  const BASE_ARR = { reun: "reunioes", novos: "novos", renovPrev: "renovPrev" };
   function isAjustado(k, i) {
     const p = state.prem;
     if (BASE_ARR[k]) return p[BASE_ARR[k]][i] !== DEFAULT_PREM[BASE_ARR[k]][i];
@@ -1120,6 +1121,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     state.prem.ajustes = {};
     state.prem.reunioes = DEFAULT_PREM.reunioes.slice();
     state.prem.novos = DEFAULT_PREM.novos.slice();
+    state.prem.renovPrev = DEFAULT_PREM.renovPrev.slice();
     queueWrite("gestao/premissas", () => clone(state.prem));
     renderAll();
   });
