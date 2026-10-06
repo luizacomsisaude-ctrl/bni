@@ -8,8 +8,9 @@ Painéis das metas da gestão de out/2026 a mar/2027, um por grupo, montados a p
 | BNI Excelência · Gestão 23 | `dashboard/excelencia.html` | `planilhas/METAS_GESTAO_EXCELENCIA.xlsx` |
 | BNI Euforia · Gestão 6 | `dashboard/euforia.html` | `planilhas/METAS_GESTAO_EUFORIA.xlsx` |
 | BNI Eficaz · Gestão 24 | `dashboard/eficaz.html` | `planilhas/METAS_GESTAO_EFICAZ.xlsx` |
+| BNI Inovação · Gestão 24 | `dashboard/inovacao.html` | `planilhas/METAS_GESTAO_INOVACAO.xlsx` |
 
-Cada painel mostra as metas planejadas de cada mês e tem campos para lançar o realizado. Os dois usam as mesmas fórmulas; mudam só as premissas de cada grupo (o Excelência também mostra a visão de 85 membros o Euforia, a missão de 40, e o Eficaz, a missão de 60).
+Cada painel mostra as metas planejadas de cada mês e tem campos para lançar o realizado. Os dois usam as mesmas fórmulas; mudam só as premissas de cada grupo (o Excelência também mostra a visão de 85 membros o Euforia, a missão de 40, o Eficaz, a missão de 60, e o Inovação, a missão de 40).
 
 ## O que o painel acompanha
 
