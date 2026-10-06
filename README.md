@@ -29,7 +29,7 @@ Qualquer meta planejada pode ser ajustada direto na tabela "Planejado × realiza
 
 A seção "Renovantes" guarda os nomes de quem renova a afiliação em cada mês, com a situação de cada um (pendente, renovou, não renovou).
 
-A seção "Valor de cadeira e conversão" mostra a eficiência do time: negócios fechados ÷ referências = taxa de conversão. Negócios e referências são lançados mês a mês num quadro da própria seção. Com o ticket médio (opcional), o painel calcula a meta de conversão e estima os negócios dos meses sem número lançado. Também traz o valor de cadeira do grupo (OPNF ÷ membros), o valor da cadeira por reunião e o OPNF por referência.
+A seção "Valor de cadeira e conversão" mostra a eficiência do time: total de negócios (R$) ÷ ticket médio = quantidade de negócios; quantidade de negócios ÷ referências = taxa de conversão. O total de negócios e as referências são digitados mês a mês num quadro da própria seção (mês sem total digitado usa o OPNF lançado). A meta de conversão usa o OPNF e as referências planejados. Também mostra o valor de cadeira do grupo (OPNF ÷ membros) e o valor da cadeira por reunião.
 
 As premissas (reuniões por mês, novos membros planejados, saídas e renovações previstas, taxas) podem ser editadas no próprio painel, na seção "Premissas das metas".
 
