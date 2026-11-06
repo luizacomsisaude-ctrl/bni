@@ -452,15 +452,15 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
   <section id="conversao">
     <div class="sec-head">
       <h2>Valor de cadeira e conversão</h2>
-      <p>A eficiência do time: total de negócios (R$) ÷ ticket médio = quantidade de negócios; quantidade de negócios ÷ referências = taxa de conversão.</p>
+      <p>A eficiência do time: total de negócios (R$) ÷ valor de cadeira = quantidade de negócios; quantidade de negócios ÷ referências = taxa de conversão.</p>
     </div>
     <div class="start-field">
-      <label for="ticketMedio">Ticket médio</label>
+      <label for="ticketMedio">Valor de cadeira padrão</label>
       <input type="number" inputmode="decimal" min="0" step="any" id="ticketMedio" data-p="ticketMedio" data-t="dec" placeholder="R$">
-      <span class="note">Valor médio de um negócio no grupo. Divide o total de negócios para chegar à quantidade de negócios.</span>
+      <span class="note">Usado nos meses em que o valor de cadeira não foi digitado no quadro abaixo (aparece em cinza no campo).</span>
     </div>
     <div class="panel conv-entry">
-      <h3>Total de negócios e referências mês a mês</h3>
+      <h3>Total de negócios, valor de cadeira e referências mês a mês</h3>
       <div class="tbl-wrap"><table class="ctbl" id="convTable"></table></div>
       <p class="note">Estes números são só deste indicador. Eles não mudam as metas nem os resultados lançados no mês.</p>
     </div>
@@ -1163,7 +1163,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     let h = "<thead><tr><th></th>";
     for (let i = 0; i < 6; i++) h += '<th id="ch' + i + '"></th>';
     h += '<th style="text-align:right">Total</th></tr></thead><tbody>';
-    [["negociosValor", "Total de negócios (R$)", "cv", "decimal", "0.01"], ["refsConv", "Referências", "cr", "numeric", "1"]].forEach(([k, label, pre, mode, step]) => {
+    [["negociosValor", "Total de negócios (R$)", "cv", "decimal", "0.01"], ["valorCadeira", "Valor de cadeira (R$)", "ck", "decimal", "0.01"], ["refsConv", "Referências", "cr", "numeric", "1"]].forEach(([k, label, pre, mode, step]) => {
       h += "<tr><td>" + label + "</td>";
       for (let i = 0; i < 6; i++) h += '<td><input type="number" inputmode="' + mode + '" min="0" step="' + step + '" id="' + pre + i + '" data-k="' + k + '" data-ci="' + i + '" placeholder="—" aria-label="' + label + " em " + esc(monthInfo(i).short) + '"' + dis + "></td>";
       h += '<td class="tot num" id="' + pre + 'T"></td></tr>';
@@ -1191,11 +1191,13 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
 
     // dados próprios do indicador: não usam o OPNF, as referências nem as metas do mês
     const valorMes = (i) => has(M[i].negociosValor) ? M[i].negociosValor : null;
+    // valor de cadeira do mês: o digitado no quadro ou, se vazio, o valor padrão do campo acima
+    const cadeiraMes = (i) => (has(M[i].valorCadeira) && M[i].valorCadeira > 0 ? M[i].valorCadeira : tk);
     let V = 0, Q = 0, Rf = 0, nConv = 0, valorT = 0, refsT = 0, qT = 0;
     const monthsConv = [];
     for (let i = 0; i < 6; i++) {
-      const v = valorMes(i), r = M[i].refsConv;
-      const q = tk && v != null ? v / tk : null;
+      const v = valorMes(i), r = M[i].refsConv, ck = cadeiraMes(i);
+      const q = ck && v != null ? v / ck : null;
       if (v != null) valorT += v;
       if (has(r)) refsT += r;
       if (q != null) qT += q;
@@ -1211,26 +1213,30 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       const ev = $("cv" + i), er = $("cr" + i);
       if (ev !== document.activeElement) ev.value = has(M[i].negociosValor) ? M[i].negociosValor : "";
       if (er !== document.activeElement) er.value = has(M[i].refsConv) ? M[i].refsConv : "";
+      const ek = $("ck" + i);
+      if (ek !== document.activeElement) ek.value = has(M[i].valorCadeira) ? M[i].valorCadeira : "";
+      ek.placeholder = tk ? nf0.format(tk) : "—";
       const d = monthsConv[i];
       $("cq" + i).textContent = d.q == null ? "—" : nf1.format(d.q);
       $("cc" + i).textContent = pctTxt(d.real);
     }
     $("cvT").textContent = valorT ? brlShort(valorT) : "—";
     $("crT").textContent = refsT ? nf0.format(refsT) : "—";
+    $("ckT").textContent = Q ? brl.format(V / Q) : "—";
     $("cqT").textContent = qT ? nf1.format(qT) : "—";
     $("ccT").textContent = pctTxt(conv);
 
     const eq = (vv, rr, label) => '<div style="display:grid;gap:8px"><div class="eq" aria-label="Cálculo da conversão">' +
       '<div class="eq-term"><small>Total de negócios</small><b>' + brlShort(vv) + '</b></div><span class="eq-op">÷</span>' +
-      '<div class="eq-term"><small>Ticket médio</small><b>' + brl.format(tk) + '</b></div><span class="eq-op">=</span>' +
-      '<div class="eq-term"><small>Negócios</small><b>' + nf1.format(vv / tk) + '</b></div><span class="eq-op">÷</span>' +
+      '<div class="eq-term"><small>Valor de cadeira</small><b>' + brl.format(vv / Q) + '</b></div><span class="eq-op">=</span>' +
+      '<div class="eq-term"><small>Negócios</small><b>' + nf1.format(Q) + '</b></div><span class="eq-op">÷</span>' +
       '<div class="eq-term"><small>Referências</small><b>' + nf0.format(rr) + '</b></div><span class="eq-op">=</span>' +
-      '<div class="eq-term res"><small>Conversão</small><b>' + pctTxt((vv / tk) / rr) + "</b></div>" +
+      '<div class="eq-term res"><small>Conversão</small><b>' + pctTxt(Q / rr) + "</b></div>" +
       '</div><p class="eq-cap">' + label + "</p></div>";
 
     let hero;
-    if (!tk) {
-      hero = '<div class="panel"><p class="conv-empty"><b>Informe o ticket médio</b> no campo acima. Ele divide o total de negócios para chegar à quantidade de negócios e à taxa de conversão.</p></div>';
+    if (conv == null && !tk && ![0, 1, 2, 3, 4, 5].some((i) => has(M[i].valorCadeira))) {
+      hero = '<div class="panel"><p class="conv-empty"><b>Informe o valor de cadeira</b> no quadro (mês a mês) ou o valor padrão no campo acima. Ele divide o total de negócios para chegar à quantidade de negócios e à taxa de conversão.</p></div>';
     } else if (conv != null) {
       const tag = nConv === 6 ? "Semestre" : "Acumulado de " + nConv + (nConv > 1 ? " meses" : " mês");
       hero = '<div class="panel conv-hero">' +
@@ -1238,14 +1244,14 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
         '<div class="big num">' + pctTxt(conv) + "</div>" +
         (conv > 0 ? '<div class="per">1 negócio a cada <b>' + nf2.format(1 / conv) + "</b> referências</div>" : "") +
         "</div>" +
-        eq(V, Rf, "Meses com total de negócios e referências lançados no quadro acima.") + "</div>";
+        eq(V, Rf, "Meses com total de negócios, valor de cadeira e referências no quadro acima. Valor de cadeira no destaque = média dos meses (total ÷ negócios).") + "</div>";
     } else {
       hero = '<div class="panel"><p class="conv-empty"><b>Lance o total de negócios e as referências</b> no quadro acima para ver a taxa de conversão do time.</p></div>';
     }
 
     body.innerHTML = hero;
 
-    const hasAny = tk && monthsConv.some((d) => d.real != null);
+    const hasAny = monthsConv.some((d) => d.real != null);
     $("convChartBox").innerHTML = hasAny ? '<div class="panel chart-panel"><h3>Conversão por mês</h3>' +
       convChart(monthsConv) + "</div>" : "";
   }
@@ -1271,7 +1277,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       if (d.plan != null) pts.push([cx, y(d.plan)]);
       s += '<text x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(monthInfo(i).short) + "</text>";
       const tip = "<b>" + esc(monthInfo(i).short) + "</b><br>Conversão: " + (d.real == null ? "—" : nf1.format(d.real * 100) + "%") +
-        "<br>Total de negócios: " + (d.v == null ? "—" : brl.format(d.v)) + "<br>Negócios: " + (d.q == null ? "—" : nf1.format(d.q)) + "<br>Referências: " + (d.r == null ? "—" : nf0.format(d.r));
+        "<br>Total de negócios: " + (d.v == null ? "—" : brl.format(d.v)) + "<br>Valor de cadeira: " + (d.q ? brl.format(d.v / d.q) : "—") + "<br>Negócios: " + (d.q == null ? "—" : nf1.format(d.q)) + "<br>Referências: " + (d.r == null ? "—" : nf0.format(d.r));
       s += '<rect class="hit" x="' + (padL + gw * i + 2) + '" y="' + padT + '" width="' + (gw - 4) + '" height="' + ih + '" rx="6" data-tip="' + esc(tip) + '"/>';
     });
     if (pts.length > 1) s += '<path class="l-plan" d="M' + pts.map((q) => q.join(",")).join("L") + '"/>';
@@ -1306,7 +1312,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     ["fatorRef", "Referências por membro/reunião", "dec"],
     ["opnfBase", "OPNF do período anterior (R$)", "dec"],
     ["palmsBase", "PALMS do período anterior (presenças)", "int"],
-    ["ticketMedio", "Ticket médio por negócio (R$)", "dec"]
+    ["ticketMedio", "Valor de cadeira padrão (conversão, R$)", "dec"]
   ];
   const ARRAYS = [["reunioes", "Nº de reuniões"], ["novos", "Novos membros planejados"], ["saidasPrev", "Saídas previstas"], ["renovPrev", "Renovações previstas"]];
   function renderPrem() {
