@@ -369,7 +369,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
   <section>
     <div class="sec-head">
       <h2>Obrigado por Negócio Fechado</h2>
-      <p>Meta de OPNF calculada como reuniões × membros × valor da cadeira por reunião do período anterior.</p>
+      <p>Meta de OPNF = reuniões × membros × valor da cadeira por reunião do mês. O valor da cadeira de cada mês pode ser ajustado na tabela Planejado × realizado.</p>
     </div>
     <div class="tabs per-tabs" role="tablist" aria-label="Período do OPNF" data-per-bar></div>
     <div class="hero">
@@ -500,6 +500,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     fatorRef: 1.12,
     ticketMedio: null,
     ajustes: {},
+    vcMes: [],
     opnfBase: 3615252,
     palmsBase: 1690
   };
@@ -585,6 +586,8 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       prev = membros;
       const assid = ov("assid", i, p.assiduidadeMeta);
       const convidados = ov("convidados", i, membros);
+      // valor da cadeira por reunião do mês: o digitado na tabela ou, se vazio, o do período anterior
+      const vcMes = p.vcMes && has(p.vcMes[i]) ? p.vcMes[i] : vc;
       out.push({
         reun, membros, novos: p.novos[i], renovPrev: p.renovPrev[i], renov: prov, naoRenov, saidas: saidasTot,
         faltas: ov("faltas", i, Math.floor((1 - assid) * membros * reun + 1e-9)),
@@ -594,7 +597,8 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
         oao: ov("oao", i, membros * reun),
         ueg: ov("ueg", i, membros * reun),
         refs: ov("refs", i, Math.round(membros * reun * p.fatorRef)),
-        opnf: ov("opnf", i, reun * membros * vc)
+        vc: vcMes,
+        opnf: ov("opnf", i, reun * membros * vcMes)
       });
     }
     return { months: out, vc };
@@ -764,6 +768,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
         '<dl class="kv">' +
         "<dt>Meta do mês</dt><dd>" + brl.format(m.planned) + "</dd>" +
         "<dt>Falta para a meta do mês</dt><dd>" + brl.format(Math.max(0, m.planned - m.real)) + "</dd>" +
+        "<dt>Valor da cadeira por reunião</dt><dd>" + brl.format(plan.months[periodo].vc) + "</dd>" +
         "<dt>Acumulado no semestre</dt><dd>" + brlShort(sem.real) + " de " + brlShort(sem.total) + "</dd>" +
         "</dl>";
       $("opnfChart").innerHTML = barChart(monthSeries("opnf", plan), "opnf", 240, periodo);
@@ -781,7 +786,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       '<dl class="kv">' +
       "<dt>Planejado até agora</dt><dd>" + (x.count ? brl.format(x.planned) : "—") + "</dd>" +
       "<dt>Falta para a meta</dt><dd>" + brl.format(Math.max(0, total - x.real)) + "</dd>" +
-      "<dt>Valor da cadeira por reunião</dt><dd>" + brl.format(plan.vc) + "</dd>" +
+      "<dt>Valor da cadeira por reunião (base)</dt><dd>" + brl.format(plan.vc) + "</dd>" +
       "</dl>";
     $("opnfChart").innerHTML = barChart(monthSeries("opnf", plan), "opnf", 240, null);
   }
@@ -935,6 +940,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     ["oao", "Um-a-Um", true, false],
     ["ueg", "UEG", true, false],
     ["refs", "Referências qualificadas", true, false],
+    ["vc", "Valor da cadeira por reunião (R$)", false, false],
     ["opnf", "OPNF (R$)", true, false],
     ["renovPrev", "Renovações previstas", false, false],
     ["renov", "Renovações prováveis (meta)", true, false],
@@ -944,12 +950,13 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
   const BASE_ARR = { reun: "reunioes", novos: "novos", renovPrev: "renovPrev" };
   function isAjustado(k, i) {
     const p = state.prem;
+    if (k === "vc") return !!(p.vcMes && has(p.vcMes[i]));
     if (BASE_ARR[k]) return p[BASE_ARR[k]][i] !== DEFAULT_PREM[BASE_ARR[k]][i];
     return !!(p.ajustes && p.ajustes[k] && has(p.ajustes[k][i]));
   }
   function planInputValue(k, v) {
     if (k === "assid") return +(v * 100).toFixed(1);
-    if (k === "opnf") return Math.round(v);
+    if (k === "opnf" || k === "vc") return Math.round(v);
     return v;
   }
   let matrixBuilt = false;
@@ -962,7 +969,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       h += "<tr><td>" + esc(label) + "</td>";
       for (let i = 0; i < 6; i++) {
         h += '<td class="pc" id="mpc_' + k + "_" + i + '"><input type="number" inputmode="decimal" min="0" step="any"' +
-          (k === "opnf" ? ' class="w"' : "") + ' id="mp_' + k + "_" + i + '" data-mp="' + k + '" data-i="' + i + '"' +
+          (k === "opnf" || k === "vc" ? ' class="w"' : "") + ' id="mp_' + k + "_" + i + '" data-mp="' + k + '" data-i="' + i + '"' +
           ' aria-label="' + esc(label) + " planejado em " + esc(monthInfo(i).short) + '"' + dis + "></td>" +
           '<td class="r" id="mr_' + k + "_" + i + '"></td>';
       }
@@ -1017,7 +1024,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       oao: "Planejado: <b>" + pm.oao + "</b>",
       ueg: "Planejado: <b>" + pm.ueg + "</b>",
       refs: "Planejado: <b>" + pm.refs + "</b>",
-      opnf: "Planejado: <b>" + brl.format(pm.opnf) + "</b>",
+      opnf: "Planejado: <b>" + brl.format(pm.opnf) + "</b> · cadeira " + brl.format(pm.vc) + "/reunião",
       renov: "Previstas: <b>" + pm.renovPrev + "</b> · prováveis: <b>" + pm.renov + "</b>" + renovListaHint(tab),
       saidas: "Previstas: <b>" + pm.saidas + "</b> (" + state.prem.saidasPrev[tab] + " + " + pm.naoRenov + " não renovações)"
     };
@@ -1476,7 +1483,12 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
       const k = t.dataset.mp, i = +t.dataset.i;
       const n = t.value === "" ? null : Number(t.value);
       if (n != null && (!isFinite(n) || n < 0)) return;
-      if (BASE_ARR[k]) {
+      if (k === "vc") {
+        const arr = (state.prem.vcMes || []).slice();
+        while (arr.length < 6) arr.push(null);
+        arr[i] = n;
+        state.prem.vcMes = arr.every((v) => v == null) ? [] : arr;
+      } else if (BASE_ARR[k]) {
         state.prem[BASE_ARR[k]][i] = n == null ? DEFAULT_PREM[BASE_ARR[k]][i] : n;
       } else {
         const aj = state.prem.ajustes = Object.assign({}, state.prem.ajustes);
@@ -1528,6 +1540,7 @@ details > .inner { padding: 0 18px 18px; display: grid; gap: 14px; }
     state.prem.reunioes = DEFAULT_PREM.reunioes.slice();
     state.prem.novos = DEFAULT_PREM.novos.slice();
     state.prem.renovPrev = DEFAULT_PREM.renovPrev.slice();
+    state.prem.vcMes = [];
     queueWrite("gestao/premissas", () => clone(state.prem));
     renderAll();
   });
